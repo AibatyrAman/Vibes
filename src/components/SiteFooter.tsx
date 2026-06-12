@@ -41,7 +41,7 @@ export default function SiteFooter() {
       {/* extra grain on the navy */}
       <div
         aria-hidden
-        className="bg-grain pointer-events-none absolute inset-0 opacity-[0.13] mix-blend-overlay"
+        className="bg-grain pointer-events-none absolute inset-0 opacity-[0.08]"
       />
 
       <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-3">

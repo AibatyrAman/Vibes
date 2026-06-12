@@ -6,7 +6,7 @@ export default function GrainOverlay() {
   return (
     <div
       aria-hidden
-      className="bg-grain pointer-events-none fixed inset-0 z-[90] opacity-[0.11] mix-blend-multiply"
+      className="bg-grain pointer-events-none fixed inset-0 z-[90] opacity-[0.06]"
     />
   );
 }
