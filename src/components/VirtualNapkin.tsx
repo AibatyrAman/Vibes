@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 
 function NapkinIcon() {
@@ -37,54 +36,49 @@ function NapkinIcon() {
 
 /**
  * Crumpled napkin pinned to the bottom-right. Tap it and the chef's note
- * unfolds out of the corner in a choppy little pop.
+ * unfolds out of the corner — pure CSS transition (steps) toggle, no JS anim lib.
  */
 export default function VirtualNapkin() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="fixed bottom-5 right-5 z-[80] flex flex-col items-end gap-3 print:hidden">
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            key="napkin-note"
-            initial={{ opacity: 0, scale: 0.25, rotate: 8 }}
-            animate={{ opacity: 1, scale: 1, rotate: -2 }}
-            exit={{ opacity: 0, scale: 0.25, rotate: 8 }}
-            transition={{ duration: 0.28, ease: "linear" }}
-            style={{ transformOrigin: "bottom right" }}
-            className="relative w-64 border-2 border-ink bg-[#fdfcf7] p-5 shadow-pop"
-          >
-            {/* faint napkin creases */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-[0.1]"
-              style={{
-                backgroundImage:
-                  "repeating-linear-gradient(45deg, var(--color-ink) 0 1px, transparent 1px 13px)",
-              }}
-            />
-            <button
-              onClick={() => setOpen(false)}
-              aria-label="Kapat"
-              className="absolute right-1.5 top-1.5 grid size-6 place-items-center border-2 border-ink bg-red text-paper transition-transform hover:rotate-90"
-            >
-              <X strokeWidth={3} className="size-3.5" />
-            </button>
+    <div className="fixed bottom-5 right-5 z-[80] print:hidden">
+      {/* note (always mounted, absolutely placed so it never shifts the button) */}
+      <div
+        aria-hidden={!open}
+        className={`absolute bottom-[4.75rem] right-0 w-64 origin-bottom-right border-2 border-ink bg-[#fdfcf7] p-5 shadow-pop transition-all duration-300 [transition-timing-function:steps(4)] ${
+          open
+            ? "scale-100 rotate-[-2deg] opacity-100"
+            : "pointer-events-none scale-0 rotate-6 opacity-0"
+        }`}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.1]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg, var(--color-ink) 0 1px, transparent 1px 13px)",
+          }}
+        />
+        <button
+          onClick={() => setOpen(false)}
+          aria-label="Kapat"
+          className="absolute right-1.5 top-1.5 grid size-6 place-items-center border-2 border-ink bg-red text-paper transition-transform hover:rotate-90"
+        >
+          <X strokeWidth={3} className="size-3.5" />
+        </button>
 
-            <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
-              Vibes · peçete notu
-            </p>
-            <p className="mt-2 font-hand text-2xl leading-none text-red">
-              Bugünün Şef Önerisi:
-            </p>
-            <p className="mt-2 font-hand text-3xl font-bold leading-tight text-ink">
-              Tuzlu karamel cortado &amp; portakallı kek.
-            </p>
-            <p className="mt-3 text-right font-hand text-xl text-navy">— Vibes</p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/50">
+          Vibes · peçete notu
+        </p>
+        <p className="mt-2 font-hand text-2xl leading-none text-red">
+          Bugünün Şef Önerisi:
+        </p>
+        <p className="mt-2 font-hand text-3xl font-bold leading-tight text-ink">
+          Tuzlu karamel cortado &amp; portakallı kek.
+        </p>
+        <p className="mt-3 text-right font-hand text-xl text-navy">— Vibes</p>
+      </div>
 
       <button
         onClick={() => setOpen((v) => !v)}
