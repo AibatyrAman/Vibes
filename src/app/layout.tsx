@@ -31,13 +31,12 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Vibes — Kahveden Kokteyle",
+  title: "vibes — no rush, just vibes",
   description:
-    "Gündüz nitelikli kahve, akşamüstü Golden Hours: şarap, bira ve kokteyl. Vibes — kahveden kokteyle, her gün 08:00–20:00.",
+    "Where every visit feels like the right vibe. Kahve, şarap, kokteyl. Her gün 10:00–22:00, Perlavista AVM, İstanbul.",
   openGraph: {
-    title: "Vibes — Kahveden Kokteyle",
-    description:
-      "Gündüz kahve, akşam aperitivo. Golden Hours her gün 08:00–20:00.",
+    title: "vibes — no rush, just vibes",
+    description: "Where every visit feels like the right vibe. Her gün 10:00–22:00.",
     type: "website",
   },
 };

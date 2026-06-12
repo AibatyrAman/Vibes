@@ -9,7 +9,7 @@ const ITEMS = [
   "BİRA",
   "ESPRESSO",
   "APERİTİVO",
-  "08:00 — 20:00",
+  "10:00 — 22:00",
 ];
 
 function Line() {

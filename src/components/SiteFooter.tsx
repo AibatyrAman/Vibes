@@ -1,4 +1,5 @@
 import { Clock, Instagram, MapPin, Phone } from "lucide-react";
+import Logo from "./Logo";
 
 /** Red "wet glass" coaster ring left on the navy paper. */
 function CoasterStain({ className = "" }: { className?: string }) {
@@ -47,20 +48,21 @@ export default function SiteFooter() {
       <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-3">
         {/* wordmark + tagline */}
         <div>
-          <p className="font-display text-6xl uppercase leading-none text-paper text-pop-red [rotate:-2deg]">
-            Vibes
-          </p>
-          <p className="mt-4 max-w-xs font-mono text-sm leading-relaxed text-paper/80">
-            Kahveden kokteyle. Gündüz nitelikli çekirdek, akşam Golden Hours.
+          <Logo className="h-12 text-paper" />
+          <p
+            lang="en"
+            className="mt-5 max-w-xs font-mono text-sm leading-relaxed text-paper/80"
+          >
+            Where every visit feels like the right vibe.
           </p>
           <a
-            href="https://instagram.com"
+            href="https://instagram.com/vibesobsesif"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-2 border-2 border-paper bg-transparent px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest shadow-[5px_5px_0_#e63946] transition-transform hover:-translate-y-0.5"
+            className="mt-5 inline-flex items-center gap-2 border-2 border-paper bg-transparent px-4 py-2 font-mono text-xs font-bold uppercase tracking-widest shadow-[5px_5px_0_#db1010] transition-transform hover:-translate-y-0.5"
           >
             <Instagram strokeWidth={2.5} className="size-4" />
-            @vibes
+            @vibesobsesif
           </a>
         </div>
 
@@ -69,16 +71,26 @@ export default function SiteFooter() {
           <h3 className="font-display text-2xl uppercase tracking-wide text-red">
             Adres
           </h3>
-          <p className="mt-3 flex items-start gap-2 text-paper/85">
+          <a
+            href="https://www.google.com/maps/search/?api=1&query=Perlavista+AVM+Adnan+Kahveci+Beylikd%C3%BCz%C3%BC+Istanbul"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 flex items-start gap-2 text-paper/85 transition-colors hover:text-paper"
+          >
             <MapPin strokeWidth={2.5} className="mt-0.5 size-4 shrink-0 text-red" />
-            Moda Cad. No: 20
-            <br />
-            Kadıköy · İstanbul
-          </p>
-          <p className="mt-3 flex items-center gap-2 text-paper/85">
+            <span>
+              Adnan Kahveci Mah., Perlavista AVM,
+              <br />
+              3. Kat Teras · İstanbul 34500
+            </span>
+          </a>
+          <a
+            href="tel:+905437163633"
+            className="mt-3 flex items-center gap-2 text-paper/85 transition-colors hover:text-paper"
+          >
             <Phone strokeWidth={2.5} className="size-4 shrink-0 text-red" />
-            +90 216 000 00 00
-          </p>
+            0543 716 36 33
+          </a>
         </div>
 
         {/* hours, sat on the coaster stain */}
@@ -93,12 +105,12 @@ export default function SiteFooter() {
               Her gün
             </p>
             <p className="mt-1 font-display text-5xl leading-none text-paper">
-              08:00
+              10:00
               <span className="px-2 text-red">—</span>
-              20:00
+              22:00
             </p>
             <p className="mt-3 font-mono text-xs uppercase tracking-widest text-paper/70">
-              Golden Hours · 17:00 — 20:00
+              Kahve · Şarap · Kokteyl
             </p>
           </div>
         </div>
@@ -108,7 +120,7 @@ export default function SiteFooter() {
       <div className="relative border-t-2 border-paper/20">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-5 py-5 font-mono text-[11px] uppercase tracking-widest text-paper/60 sm:flex-row">
           <span>© 2026 Vibes</span>
-          <span className="text-paper/80">Kahveden kokteyle.</span>
+          <span lang="en" className="text-paper/80">No rush, just vibes.</span>
           <span>Made with grain &amp; espresso</span>
         </div>
       </div>

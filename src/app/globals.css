@@ -6,12 +6,13 @@
 
 @theme {
   /* --- Palette -------------------------------------------------------- */
-  --color-navy: #2a4b9b;
-  --color-navy-deep: #1e3a78;
-  --color-red: #e63946;
-  --color-red-pop: #ff3b30;
-  --color-paper: #f4f1ea;
-  --color-paper-dim: #e9e4d6;
+  /* Resmî marka paleti — tüm mavi/lacivert #1800ad, tüm kırmızı #db1010 */
+  --color-navy: #1800ad;
+  --color-navy-deep: #11007a;
+  --color-red: #db1010;
+  --color-red-pop: #f42e04;
+  --color-paper: #ebe9e1;
+  --color-paper-dim: #e0dccb;
   --color-ink: #111827;
   --color-espresso: #1a1410;
 

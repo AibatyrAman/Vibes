@@ -43,15 +43,18 @@ export default function Hero() {
             </span>
           </h1>
 
-          <p
-            className="animate-pop-in mt-6 max-w-md font-mono text-sm leading-relaxed text-ink/80 sm:text-base"
+          <div
+            lang="en"
+            className="animate-pop-in mt-6"
             style={{ animationDelay: "0.22s" }}
           >
-            Sabah filtre &amp; espresso, gün batımında spritz, şarap ve kokteyl.
-            Vibes her gün <span className="font-bold text-ink">08:00</span>&apos;de
-            açar, <span className="font-bold text-ink">20:00</span>&apos;de
-            kapanır.
-          </p>
+            <p className="font-mono text-sm font-bold uppercase tracking-[0.12em] text-navy sm:text-base">
+              Where every visit feels like the right vibe
+            </p>
+            <p className="mt-2 font-display text-3xl uppercase leading-[0.95] text-red sm:text-4xl">
+              No rush, just vibes
+            </p>
+          </div>
 
           <div
             className="animate-pop-in mt-8 flex flex-wrap gap-4"
@@ -118,7 +121,7 @@ export default function Hero() {
               <br />
               Hours
               <br />
-              08—20
+              10—22
             </Sticker>
           </div>
         </div>
