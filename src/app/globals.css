@@ -15,6 +15,11 @@
   --color-ink: #111827;
   --color-espresso: #1a1410;
 
+  /* --- Resmî marka paleti (vibes01 sayfası) ----------------------------- */
+  --color-brand-red: #db1010;
+  --color-brand-blue: #1800ad;
+  --color-brand-paper: #ebe9e1;
+
   /* --- Offset (hard) shadows — NO blur, retro block shadow ------------ */
   --shadow-pop-sm: 3px 3px 0 0 var(--color-ink);
   --shadow-pop: 6px 6px 0 0 var(--color-ink);
@@ -45,6 +50,9 @@
   --font-mono: var(--font-space-mono), ui-monospace, monospace;
   --font-marker: var(--font-marker), "Comic Sans MS", cursive;
   --font-hand: var(--font-caveat), "Comic Sans MS", cursive;
+  /* vibes01 marka fontları (yalnız o rotada tanımlı) */
+  --font-bubble: var(--font-chewy), "Comic Sans MS", cursive;
+  --font-cond: var(--font-oswald), "Arial Narrow", sans-serif;
 }
 
 /* =========================================================================
