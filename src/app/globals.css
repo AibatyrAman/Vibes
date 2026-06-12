@@ -34,7 +34,8 @@
   --animate-marquee: marquee 22s steps(48) infinite;
   --animate-stamp: stampIn 0.4s steps(3) both;
   --animate-steam: steam 2.4s steps(4) infinite;
-  --animate-pop-in: popIn 0.5s steps(4) both;
+  /* Giriş/yükleme animasyonu AKICI (stop-motion steps yok) — ilk açılış pürüzsüz */
+  --animate-pop-in: popIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 /* Fonts come from next/font (CSS vars set on <html>) — inline so Tailwind
