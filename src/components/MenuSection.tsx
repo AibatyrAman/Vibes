@@ -1,14 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { MENU, type Category, type Product } from "@/data/menu";
 import MenuAccordion from "./MenuAccordion";
+import ProductInfoOverlay from "./ProductInfoOverlay";
 
 function matches(p: Product, q: string) {
   return (
     p.name.toLowerCase().includes(q) ||
-    (p.desc?.toLowerCase().includes(q) ?? false)
+    (p.desc?.toLowerCase().includes(q) ?? false) ||
+    (p.ingredients?.some((i) => i.toLowerCase().includes(q)) ?? false)
   );
 }
 
@@ -17,13 +19,17 @@ export default function MenuSection() {
     () => new Set(MENU.filter((c) => c.defaultOpen).map((c) => c.id)),
   );
   const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<{
+    product: Product;
+    variant: "modal" | "sheet";
+  } | null>(null);
   const q = query.trim().toLowerCase();
+  const listRef = useRef<HTMLDivElement>(null);
 
-  // when searching: keep only categories with hits, filtered to matching items
   const results = useMemo<Category[]>(() => {
     if (!q) return MENU;
     return MENU.flatMap((c) => {
-      if (c.title.toLowerCase().includes(q)) return [c]; // whole category matches
+      if (c.title.toLowerCase().includes(q)) return [c];
       const items = c.items?.filter((p) => matches(p, q));
       const groups = c.groups
         ?.map((g) => ({ ...g, items: g.items.filter((p) => matches(p, q)) }))
@@ -41,6 +47,30 @@ export default function MenuSection() {
       return n;
     });
 
+  const onOpenInfo = useCallback(
+    (product: Product, variant: "modal" | "sheet") =>
+      setSelected({ product, variant }),
+    [],
+  );
+
+  // Mobile "active card on the centre line" wobble — touch devices only.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(hover: hover)").matches) return; // desktop keeps hover
+    const root = listRef.current;
+    if (!root) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          e.target.classList.toggle("on-line", e.isIntersecting);
+        }
+      },
+      { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
+    );
+    root.querySelectorAll("[data-card]").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, [open, q]);
+
   return (
     <section
       id="menu"
@@ -52,7 +82,7 @@ export default function MenuSection() {
             Menü
           </h2>
           <p className="mt-2 font-mono text-xs uppercase tracking-[0.2em] text-ink/60">
-            Kategoriye dokun · aç · seç
+            Kategoriye dokun · ürüne dokun · keşfet
           </p>
         </div>
 
@@ -82,13 +112,14 @@ export default function MenuSection() {
         </div>
 
         {/* accordions */}
-        <div>
+        <div ref={listRef}>
           {results.map((c) => (
             <MenuAccordion
               key={c.id}
               category={c}
               open={q ? true : open.has(c.id)}
               onToggle={() => toggle(c.id)}
+              onOpenInfo={onOpenInfo}
             />
           ))}
           {q && results.length === 0 && (
@@ -98,6 +129,12 @@ export default function MenuSection() {
           )}
         </div>
       </div>
+
+      <ProductInfoOverlay
+        product={selected?.product ?? null}
+        variant={selected?.variant ?? "modal"}
+        onClose={() => setSelected(null)}
+      />
     </section>
   );
 }

@@ -162,6 +162,28 @@
   100% { transform: scale(1) rotate(-2deg); opacity: 1; }
 }
 
+/* Product info overlay entrances (smooth, not stop-motion). */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes popUp {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Mobile only: the card crossing the centre line wobbles (no hover on touch). */
+@media (hover: none) {
+  [data-card].on-line > article {
+    animation: wobble 0.5s steps(2) infinite;
+    translate: 0 -4px;
+  }
+}
+
 /* Respect reduced-motion: drop the stop-motion entirely. */
 @media (prefers-reduced-motion: reduce) {
   *,

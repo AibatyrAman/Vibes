@@ -5,18 +5,30 @@ import MenuCard from "./MenuCard";
 /** cycle of base tilts so cards look hand-pasted */
 const ROT = [-2, 1.5, -1, 2, -1.5, 1];
 
+type OpenInfo = (product: Product, variant: "modal" | "sheet") => void;
+
 function Cards({
   items,
   accent,
+  infoStyle,
+  onOpenInfo,
 }: {
   items: Product[];
   accent: "navy" | "red";
+  infoStyle: Category["infoStyle"];
+  onOpenInfo: OpenInfo;
 }) {
   return (
     <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
       {items.map((item, i) => (
-        <div key={item.name} className="mb-6 break-inside-avoid">
-          <MenuCard item={item} accent={accent} rotate={ROT[i % ROT.length]} />
+        <div key={item.name} data-card className="mb-6 break-inside-avoid">
+          <MenuCard
+            item={item}
+            accent={accent}
+            rotate={ROT[i % ROT.length]}
+            infoStyle={infoStyle}
+            onOpen={onOpenInfo}
+          />
         </div>
       ))}
     </div>
@@ -27,13 +39,19 @@ type Props = {
   category: Category;
   open: boolean;
   onToggle: () => void;
+  onOpenInfo: OpenInfo;
 };
 
 /**
  * One collapsible category. Header reuses CategoryBand; body animates open
  * via the grid-template-rows 0fr→1fr trick (smooth, no JS height math).
  */
-export default function MenuAccordion({ category, open, onToggle }: Props) {
+export default function MenuAccordion({
+  category,
+  open,
+  onToggle,
+  onOpenInfo,
+}: Props) {
   const panelId = `${category.id}-panel`;
 
   return (
@@ -57,7 +75,12 @@ export default function MenuAccordion({ category, open, onToggle }: Props) {
         <div className="overflow-hidden">
           <div className="pt-6">
             {category.items && (
-              <Cards items={category.items} accent={category.accent} />
+              <Cards
+                items={category.items}
+                accent={category.accent}
+                infoStyle={category.infoStyle}
+                onOpenInfo={onOpenInfo}
+              />
             )}
 
             {category.groups?.map((g) => (
@@ -67,7 +90,12 @@ export default function MenuAccordion({ category, open, onToggle }: Props) {
                   {g.label}
                   <span className="h-px flex-1 bg-ink/15" />
                 </h5>
-                <Cards items={g.items} accent={category.accent} />
+                <Cards
+                  items={g.items}
+                  accent={category.accent}
+                  infoStyle={category.infoStyle}
+                  onOpenInfo={onOpenInfo}
+                />
               </div>
             ))}
 
