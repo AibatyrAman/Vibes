@@ -97,8 +97,8 @@ export default function MenuCard({
         </span>
       )}
       {item.onSale && (
-        <span className="absolute -left-3 -top-3 z-10 -rotate-6 border-2 border-ink bg-navy px-2 py-0.5 font-hand text-lg font-bold leading-none text-paper shadow-pop-sm">
-          İndirim
+        <span className="absolute -left-3 -top-3 z-10 -rotate-6 rounded-full border-[2px] border-ink bg-paper px-3 py-1.5 font-display text-[13px] font-bold uppercase leading-none tracking-[0.18em] text-red shadow-pop-sm">
+          İndirimli
         </span>
       )}
 
