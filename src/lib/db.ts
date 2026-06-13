@@ -58,11 +58,30 @@ function migrate(db: Database.Database) {
       key   TEXT PRIMARY KEY,
       value TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      name           TEXT NOT NULL,
+      description    TEXT,
+      original_price REAL,
+      price          REAL NOT NULL DEFAULT 0,
+      active         INTEGER NOT NULL DEFAULT 1,
+      position       INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS campaign_items (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      campaign_id INTEGER NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
+      product_id  INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      quantity    INTEGER NOT NULL DEFAULT 1
+    );
+    CREATE INDEX IF NOT EXISTS idx_camp_items ON campaign_items(campaign_id);
   `);
-  // varsayılan şef önerisi (mevcut DB'lerde de oluşur)
+  // varsayılan ayarlar (mevcut DB'lerde de oluşur)
   db.prepare(
     "INSERT OR IGNORE INTO settings (key, value) VALUES ('chef_note', ?)",
   ).run("Tuzlu karamel cortado & portakallı kek.");
+  db.prepare(
+    "INSERT OR IGNORE INTO settings (key, value) VALUES ('campaigns_enabled', '1')",
+  ).run();
 }
 
 /** İlk açılışta menü.ts'teki mevcut menüyü DB'ye taşır. */

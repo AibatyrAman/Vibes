@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import type { Category, Product } from "@/data/menu";
+import type { AdminCampaign } from "@/lib/menu-repo";
 import MenuAccordion from "./MenuAccordion";
 import ProductInfoOverlay from "./ProductInfoOverlay";
+import CampaignCard from "./CampaignCard";
+
+const CROT = [-1.5, 1, -1, 1.5, -1, 1];
 
 function matches(p: Product, q: string) {
   return (
@@ -14,7 +18,13 @@ function matches(p: Product, q: string) {
   );
 }
 
-export default function MenuSection({ menu }: { menu: Category[] }) {
+export default function MenuSection({
+  menu,
+  campaigns = [],
+}: {
+  menu: Category[];
+  campaigns?: AdminCampaign[];
+}) {
   const [open, setOpen] = useState<Set<string>>(
     () => new Set(menu.filter((c) => c.defaultOpen).map((c) => c.id)),
   );
@@ -103,6 +113,24 @@ export default function MenuSection({ menu }: { menu: Category[] }) {
             </button>
           )}
         </div>
+
+        {/* kampanyalar — en üstte, arama yokken */}
+        {!q && campaigns.length > 0 && (
+          <div className="mb-8">
+            <div className="mb-5 -rotate-1">
+              <h3 className="inline-block border-2 border-ink bg-red px-5 py-2 font-display text-4xl uppercase tracking-wide text-paper shadow-pop sm:text-5xl">
+                Kampanyalar
+              </h3>
+            </div>
+            <div className="columns-1 gap-6 sm:columns-2 lg:columns-3">
+              {campaigns.map((c, i) => (
+                <div key={c.id} className="mb-6 break-inside-avoid">
+                  <CampaignCard campaign={c} rotate={CROT[i % CROT.length]} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* accordions */}
         <div ref={listRef}>

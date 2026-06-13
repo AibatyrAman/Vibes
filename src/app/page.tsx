@@ -5,7 +5,7 @@ import MenuSection from "@/components/MenuSection";
 import SiteFooter from "@/components/SiteFooter";
 import VirtualNapkin from "@/components/VirtualNapkin";
 import GrainOverlay from "@/components/scrap/GrainOverlay";
-import { getMenu, getSetting } from "@/lib/menu-repo";
+import { getActiveCampaigns, getMenu, getSetting } from "@/lib/menu-repo";
 
 // Menü SQLite'tan okunuyor; admin değişiklikleri anında yansısın.
 export const dynamic = "force-dynamic";
@@ -16,13 +16,15 @@ export default function Home() {
     "chef_note",
     "Tuzlu karamel cortado & portakallı kek.",
   );
+  const campaignsEnabled = getSetting("campaigns_enabled", "1") === "1";
+  const campaigns = campaignsEnabled ? getActiveCampaigns() : [];
   return (
     <>
       <Header />
       <Ticker tone="red" />
       <main>
         <Hero />
-        <MenuSection menu={menu} />
+        <MenuSection menu={menu} campaigns={campaigns} />
       </main>
       <SiteFooter />
       <VirtualNapkin note={chefNote} />

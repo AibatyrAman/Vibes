@@ -372,3 +372,158 @@ export function setSetting(key: string, value: string): void {
     )
     .run(key, value);
 }
+
+// ---------- kampanyalar ----------
+
+type CampaignRow = {
+  id: number;
+  name: string;
+  description: string | null;
+  original_price: number | null;
+  price: number;
+  active: number;
+  position: number;
+};
+
+export type CampaignItem = {
+  productId: number;
+  quantity: number;
+  productName: string;
+};
+
+export type AdminCampaign = {
+  id: number;
+  name: string;
+  description: string | null;
+  originalPrice: number | null;
+  price: number;
+  active: boolean;
+  position: number;
+  items: CampaignItem[];
+};
+
+export type CampaignInput = {
+  name: string;
+  description: string | null;
+  originalPrice: number | null;
+  price: number;
+  active: boolean;
+  items: { productId: number; quantity: number }[];
+};
+
+function withItems(
+  db: ReturnType<typeof getDb>,
+  row: CampaignRow,
+): AdminCampaign {
+  const items = db
+    .prepare(
+      `SELECT ci.product_id, ci.quantity, p.name AS product_name
+         FROM campaign_items ci JOIN products p ON p.id = ci.product_id
+        WHERE ci.campaign_id = ? ORDER BY ci.id`,
+    )
+    .all(row.id) as { product_id: number; quantity: number; product_name: string }[];
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    originalPrice: row.original_price,
+    price: row.price,
+    active: !!row.active,
+    position: row.position,
+    items: items.map((i) => ({
+      productId: i.product_id,
+      quantity: i.quantity,
+      productName: i.product_name,
+    })),
+  };
+}
+
+function insertCampaignItems(
+  db: ReturnType<typeof getDb>,
+  campaignId: number,
+  items: { productId: number; quantity: number }[],
+) {
+  const stmt = db.prepare(
+    "INSERT INTO campaign_items (campaign_id, product_id, quantity) VALUES (?, ?, ?)",
+  );
+  for (const it of items)
+    if (it.productId && it.quantity > 0)
+      stmt.run(campaignId, it.productId, it.quantity);
+}
+
+export function getActiveCampaigns(): AdminCampaign[] {
+  const db = getDb();
+  const rows = db
+    .prepare("SELECT * FROM campaigns WHERE active = 1 ORDER BY position, id")
+    .all() as CampaignRow[];
+  return rows.map((r) => withItems(db, r));
+}
+
+export function listCampaigns(): AdminCampaign[] {
+  const db = getDb();
+  const rows = db
+    .prepare("SELECT * FROM campaigns ORDER BY position, id")
+    .all() as CampaignRow[];
+  return rows.map((r) => withItems(db, r));
+}
+
+export function getCampaign(id: number): AdminCampaign | null {
+  const db = getDb();
+  const r = db.prepare("SELECT * FROM campaigns WHERE id = ?").get(id) as
+    | CampaignRow
+    | undefined;
+  return r ? withItems(db, r) : null;
+}
+
+export function createCampaign(input: CampaignInput): number {
+  const db = getDb();
+  const pos =
+    (db.prepare("SELECT COALESCE(MAX(position),-1)+1 AS p FROM campaigns").get() as {
+      p: number;
+    }).p ?? 0;
+  return db.transaction(() => {
+    const res = db
+      .prepare(
+        "INSERT INTO campaigns (name,description,original_price,price,active,position) VALUES (?,?,?,?,?,?)",
+      )
+      .run(
+        input.name,
+        input.description || null,
+        input.originalPrice ?? null,
+        input.price,
+        input.active ? 1 : 0,
+        pos,
+      );
+    const cid = Number(res.lastInsertRowid);
+    insertCampaignItems(db, cid, input.items);
+    return cid;
+  })();
+}
+
+export function updateCampaign(id: number, input: CampaignInput): void {
+  const db = getDb();
+  db.transaction(() => {
+    db.prepare(
+      "UPDATE campaigns SET name=?, description=?, original_price=?, price=?, active=? WHERE id=?",
+    ).run(
+      input.name,
+      input.description || null,
+      input.originalPrice ?? null,
+      input.price,
+      input.active ? 1 : 0,
+      id,
+    );
+    db.prepare("DELETE FROM campaign_items WHERE campaign_id = ?").run(id);
+    insertCampaignItems(db, id, input.items);
+  })();
+}
+
+export function deleteCampaign(id: number): void {
+  getDb().prepare("DELETE FROM campaigns WHERE id=?").run(id);
+}
+
+export function setCampaignActive(id: number, active: boolean): void {
+  getDb()
+    .prepare("UPDATE campaigns SET active=? WHERE id=?")
+    .run(active ? 1 : 0, id);
+}

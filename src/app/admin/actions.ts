@@ -228,3 +228,84 @@ export async function updateChefNoteAction(formData: FormData): Promise<void> {
   revalidateAll();
   redirect("/admin/settings");
 }
+
+// ---------- kampanyalar ----------
+
+function parseCampaignForm(fd: FormData): repo.CampaignInput {
+  const num = (k: string) => {
+    const v = fd.get(k);
+    if (v == null || String(v).trim() === "") return null;
+    const n = Number(String(v).replace(",", "."));
+    return Number.isNaN(n) ? null : n;
+  };
+  let items: { productId: number; quantity: number }[] = [];
+  try {
+    const parsed = JSON.parse(String(fd.get("items") ?? "[]"));
+    if (Array.isArray(parsed))
+      items = parsed
+        .map((x) => ({
+          productId: Number(x.productId),
+          quantity: Math.max(1, Number(x.quantity) || 1),
+        }))
+        .filter((x) => x.productId > 0);
+  } catch {
+    items = [];
+  }
+  return {
+    name: String(fd.get("name") ?? "").trim(),
+    description: String(fd.get("description") ?? "").trim() || null,
+    originalPrice: num("originalPrice"),
+    price: num("price") ?? 0,
+    active: fd.get("active") === "on" || fd.get("active") === "true",
+    items,
+  };
+}
+
+export async function createCampaignAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const input = parseCampaignForm(formData);
+  if (input.name) repo.createCampaign(input);
+  revalidateAll();
+  redirect("/admin/campaigns");
+}
+
+export async function updateCampaignAction(
+  id: number,
+  formData: FormData,
+): Promise<void> {
+  await requireAdmin();
+  const input = parseCampaignForm(formData);
+  if (input.name) repo.updateCampaign(id, input);
+  revalidateAll();
+  redirect("/admin/campaigns");
+}
+
+export async function deleteCampaignAction(id: number): Promise<void> {
+  await requireAdmin();
+  repo.deleteCampaign(id);
+  revalidateAll();
+}
+
+export async function deleteCampaignAndBackAction(id: number): Promise<void> {
+  await requireAdmin();
+  repo.deleteCampaign(id);
+  revalidateAll();
+  redirect("/admin/campaigns");
+}
+
+export async function toggleCampaignActiveAction(
+  id: number,
+  active: boolean,
+): Promise<void> {
+  await requireAdmin();
+  repo.setCampaignActive(id, active);
+  revalidateAll();
+}
+
+export async function setCampaignsEnabledAction(
+  enabled: boolean,
+): Promise<void> {
+  await requireAdmin();
+  repo.setSetting("campaigns_enabled", enabled ? "1" : "0");
+  revalidateAll();
+}

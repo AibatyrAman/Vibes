@@ -32,6 +32,12 @@ export default async function PanelLayout({
               Kategoriler
             </Link>
             <Link
+              href="/admin/campaigns"
+              className="transition-colors hover:text-red"
+            >
+              Kampanyalar
+            </Link>
+            <Link
               href="/admin/settings"
               className="transition-colors hover:text-red"
             >
