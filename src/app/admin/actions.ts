@@ -8,6 +8,7 @@ import {
   createToken,
   COOKIE_NAME,
   cookieOptions,
+  verifyToken,
 } from "@/lib/auth";
 import * as repo from "@/lib/menu-repo";
 import type { ProductInput } from "@/lib/menu-repo";
@@ -16,6 +17,13 @@ import type { Allergen, PriceVariant } from "@/data/menu";
 function revalidateAll() {
   revalidatePath("/");
   revalidatePath("/admin");
+}
+
+/** Mutasyon action'larını korur — oturum yoksa login'e atar. */
+async function requireAdmin() {
+  const store = await cookies();
+  if (!(await verifyToken(store.get(COOKIE_NAME)?.value)))
+    redirect("/admin/login");
 }
 
 function slugify(s: string): string {
@@ -113,6 +121,7 @@ function parseProductForm(fd: FormData): ProductInput {
 // ---------- product CRUD ----------
 
 export async function createProductAction(formData: FormData): Promise<void> {
+  await requireAdmin();
   const input = parseProductForm(formData);
   if (input.name && input.categoryId) repo.createProduct(input);
   revalidateAll();
@@ -123,6 +132,7 @@ export async function updateProductAction(
   id: number,
   formData: FormData,
 ): Promise<void> {
+  await requireAdmin();
   const input = parseProductForm(formData);
   if (input.name && input.categoryId) repo.updateProduct(id, input);
   revalidateAll();
@@ -130,12 +140,14 @@ export async function updateProductAction(
 }
 
 export async function deleteProductAction(id: number): Promise<void> {
+  await requireAdmin();
   repo.deleteProduct(id);
   revalidateAll();
 }
 
 /** Düzenleme sayfasındaki Sil butonu için — siler ve listeye döner. */
 export async function deleteProductAndBackAction(id: number): Promise<void> {
+  await requireAdmin();
   repo.deleteProduct(id);
   revalidateAll();
   redirect("/admin");
@@ -150,6 +162,7 @@ export async function quickUpdateAction(
     isNew?: boolean;
   },
 ): Promise<void> {
+  await requireAdmin();
   repo.quickUpdateProduct(id, patch);
   revalidateAll();
 }
@@ -157,6 +170,7 @@ export async function quickUpdateAction(
 // ---------- category CRUD ----------
 
 export async function createCategoryAction(formData: FormData): Promise<void> {
+  await requireAdmin();
   const title = String(formData.get("title") ?? "").trim();
   if (!title) redirect("/admin/categories");
   repo.createCategory({
@@ -181,6 +195,7 @@ export async function updateCategoryAction(
   id: number,
   formData: FormData,
 ): Promise<void> {
+  await requireAdmin();
   repo.updateCategory(id, {
     title: String(formData.get("title") ?? "").trim(),
     kicker: String(formData.get("kicker") ?? "").trim(),
@@ -199,6 +214,17 @@ export async function updateCategoryAction(
 }
 
 export async function deleteCategoryAction(id: number): Promise<void> {
+  await requireAdmin();
   repo.deleteCategory(id);
   revalidateAll();
+}
+
+// ---------- ayarlar ----------
+
+export async function updateChefNoteAction(formData: FormData): Promise<void> {
+  await requireAdmin();
+  const note = String(formData.get("chefNote") ?? "").trim();
+  repo.setSetting("chef_note", note);
+  revalidateAll();
+  redirect("/admin/settings");
 }

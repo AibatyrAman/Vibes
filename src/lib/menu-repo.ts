@@ -355,3 +355,20 @@ export function updateCategory(
 export function deleteCategory(id: number): void {
   getDb().prepare("DELETE FROM categories WHERE id=?").run(id);
 }
+
+// ---------- ayarlar (anahtar/değer) ----------
+
+export function getSetting(key: string, fallback = ""): string {
+  const r = getDb()
+    .prepare("SELECT value FROM settings WHERE key = ?")
+    .get(key) as { value: string } | undefined;
+  return r?.value ?? fallback;
+}
+
+export function setSetting(key: string, value: string): void {
+  getDb()
+    .prepare(
+      "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+    )
+    .run(key, value);
+}

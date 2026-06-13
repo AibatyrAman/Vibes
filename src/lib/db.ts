@@ -54,7 +54,15 @@ function migrate(db: Database.Database) {
       position    INTEGER NOT NULL DEFAULT 0
     );
     CREATE INDEX IF NOT EXISTS idx_products_cat ON products(category_id);
+    CREATE TABLE IF NOT EXISTS settings (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
   `);
+  // varsayılan şef önerisi (mevcut DB'lerde de oluşur)
+  db.prepare(
+    "INSERT OR IGNORE INTO settings (key, value) VALUES ('chef_note', ?)",
+  ).run("Tuzlu karamel cortado & portakallı kek.");
 }
 
 /** İlk açılışta menü.ts'teki mevcut menüyü DB'ye taşır. */
