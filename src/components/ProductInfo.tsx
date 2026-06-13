@@ -5,11 +5,11 @@ import { ChevronRight } from "lucide-react";
 import type { Product } from "@/data/menu";
 import AllergenIcons from "./scrap/AllergenIcons";
 
-function PriceBlock({ price }: { price: Product["price"] }) {
-  if (Array.isArray(price)) {
+function PriceBlock({ product }: { product: Product }) {
+  if (Array.isArray(product.price)) {
     return (
       <div className="flex shrink-0 flex-col items-end gap-0.5">
-        {price.map((v) => (
+        {product.price.map((v) => (
           <span
             key={v.label}
             className="whitespace-nowrap font-hand text-2xl font-bold leading-none text-red"
@@ -23,9 +23,21 @@ function PriceBlock({ price }: { price: Product["price"] }) {
       </div>
     );
   }
+  if (product.onSale && product.salePrice != null) {
+    return (
+      <div className="flex shrink-0 flex-col items-end leading-none">
+        <span className="font-mono text-base text-ink/40 line-through">
+          ₺{product.price}
+        </span>
+        <span className="font-hand text-4xl font-bold leading-none text-red">
+          ₺{product.salePrice}
+        </span>
+      </div>
+    );
+  }
   return (
     <span className="shrink-0 font-hand text-4xl font-bold leading-none text-red">
-      ₺{price}
+      ₺{product.price}
     </span>
   );
 }
@@ -63,7 +75,7 @@ export default function ProductInfo({ product }: { product: Product }) {
             </div>
           )}
         </div>
-        <PriceBlock price={product.price} />
+        <PriceBlock product={product} />
       </div>
 
       {/* içindekiler — ilk ve belirgin */}

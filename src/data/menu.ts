@@ -9,6 +9,8 @@ export type Price = number | PriceVariant[];
 export type Allergen = "süt" | "gluten" | "fındık" | "yumurta" | "soya";
 
 export type Product = {
+  /** DB satır id'si (seed verisinde yok) */
+  id?: number;
   name: string;
   /** karttaki kısa satır */
   desc?: string;
@@ -16,6 +18,9 @@ export type Product = {
   isNew?: boolean;
   /** küçük damga, ör. "Şef" */
   tag?: string;
+  /** indirim */
+  onSale?: boolean;
+  salePrice?: number;
   // --- bilgi kutusu alanları (hepsi opsiyonel) ---
   ingredients?: string[];
   allergens?: Allergen[];

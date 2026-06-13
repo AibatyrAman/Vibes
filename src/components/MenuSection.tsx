@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
-import { MENU, type Category, type Product } from "@/data/menu";
+import type { Category, Product } from "@/data/menu";
 import MenuAccordion from "./MenuAccordion";
 import ProductInfoOverlay from "./ProductInfoOverlay";
 
@@ -14,9 +14,9 @@ function matches(p: Product, q: string) {
   );
 }
 
-export default function MenuSection() {
+export default function MenuSection({ menu }: { menu: Category[] }) {
   const [open, setOpen] = useState<Set<string>>(
-    () => new Set(MENU.filter((c) => c.defaultOpen).map((c) => c.id)),
+    () => new Set(menu.filter((c) => c.defaultOpen).map((c) => c.id)),
   );
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<{
@@ -27,8 +27,8 @@ export default function MenuSection() {
   const listRef = useRef<HTMLDivElement>(null);
 
   const results = useMemo<Category[]>(() => {
-    if (!q) return MENU;
-    return MENU.flatMap((c) => {
+    if (!q) return menu;
+    return menu.flatMap((c) => {
       if (c.title.toLowerCase().includes(q)) return [c];
       const items = c.items?.filter((p) => matches(p, q));
       const groups = c.groups
@@ -37,7 +37,7 @@ export default function MenuSection() {
       const has = (items?.length ?? 0) > 0 || (groups?.length ?? 0) > 0;
       return has ? [{ ...c, items, groups }] : [];
     });
-  }, [q]);
+  }, [q, menu]);
 
   const toggle = (id: string) =>
     setOpen((s) => {

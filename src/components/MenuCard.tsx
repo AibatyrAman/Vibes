@@ -13,11 +13,11 @@ type Props = {
   onOpen?: (product: Product, variant: "modal" | "sheet") => void;
 };
 
-function PriceTag({ price }: { price: Product["price"] }) {
-  if (Array.isArray(price)) {
+function PriceTag({ item }: { item: Product }) {
+  if (Array.isArray(item.price)) {
     return (
       <div className="flex shrink-0 flex-col items-end gap-0.5 leading-none">
-        {price.map((v) => (
+        {item.price.map((v) => (
           <span
             key={v.label}
             className="whitespace-nowrap font-hand text-2xl font-bold leading-none text-red"
@@ -31,9 +31,21 @@ function PriceTag({ price }: { price: Product["price"] }) {
       </div>
     );
   }
+  if (item.onSale && item.salePrice != null) {
+    return (
+      <div className="flex shrink-0 flex-col items-end leading-none">
+        <span className="font-mono text-sm text-ink/40 line-through">
+          ₺{item.price}
+        </span>
+        <span className="font-hand text-3xl font-bold leading-none text-red">
+          ₺{item.salePrice}
+        </span>
+      </div>
+    );
+  }
   return (
     <span className="shrink-0 font-hand text-3xl font-bold leading-none text-red">
-      ₺{price}
+      ₺{item.price}
     </span>
   );
 }
@@ -84,12 +96,17 @@ export default function MenuCard({
           Yeni!
         </span>
       )}
+      {item.onSale && (
+        <span className="absolute -left-3 -top-3 z-10 -rotate-6 border-2 border-ink bg-navy px-2 py-0.5 font-hand text-lg font-bold leading-none text-paper shadow-pop-sm">
+          İndirim
+        </span>
+      )}
 
       <div className="flex items-baseline justify-between gap-3">
         <h4 className="font-display text-2xl uppercase leading-none text-navy sm:text-[1.7rem]">
           {item.name}
         </h4>
-        <PriceTag price={item.price} />
+        <PriceTag item={item} />
       </div>
 
       {item.desc && (

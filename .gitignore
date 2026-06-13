@@ -45,3 +45,6 @@ deploy.txt
 
 #PDF
 vibes_menu.pdf
+# SQLite veritabanı (VPS'te kalıcı)
+/data
+!.env.example
