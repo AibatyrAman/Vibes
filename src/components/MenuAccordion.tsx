@@ -5,17 +5,15 @@ import MenuCard from "./MenuCard";
 /** cycle of base tilts so cards look hand-pasted */
 const ROT = [-2, 1.5, -1, 2, -1.5, 1];
 
-type OpenInfo = (product: Product, variant: "modal" | "sheet") => void;
+type OpenInfo = (product: Product) => void;
 
 function Cards({
   items,
   accent,
-  infoStyle,
   onOpenInfo,
 }: {
   items: Product[];
   accent: "navy" | "red";
-  infoStyle: Category["infoStyle"];
   onOpenInfo: OpenInfo;
 }) {
   return (
@@ -26,7 +24,6 @@ function Cards({
             item={item}
             accent={accent}
             rotate={ROT[i % ROT.length]}
-            infoStyle={infoStyle}
             onOpen={onOpenInfo}
           />
         </div>
@@ -78,7 +75,6 @@ export default function MenuAccordion({
               <Cards
                 items={category.items}
                 accent={category.accent}
-                infoStyle={category.infoStyle}
                 onOpenInfo={onOpenInfo}
               />
             )}
@@ -93,7 +89,6 @@ export default function MenuAccordion({
                 <Cards
                   items={g.items}
                   accent={category.accent}
-                  infoStyle={category.infoStyle}
                   onOpenInfo={onOpenInfo}
                 />
               </div>

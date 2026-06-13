@@ -19,10 +19,7 @@ export default function MenuSection({ menu }: { menu: Category[] }) {
     () => new Set(menu.filter((c) => c.defaultOpen).map((c) => c.id)),
   );
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<{
-    product: Product;
-    variant: "modal" | "sheet";
-  } | null>(null);
+  const [selected, setSelected] = useState<Product | null>(null);
   const q = query.trim().toLowerCase();
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -47,11 +44,7 @@ export default function MenuSection({ menu }: { menu: Category[] }) {
       return n;
     });
 
-  const onOpenInfo = useCallback(
-    (product: Product, variant: "modal" | "sheet") =>
-      setSelected({ product, variant }),
-    [],
-  );
+  const onOpenInfo = useCallback((product: Product) => setSelected(product), []);
 
   // Mobile "active card on the centre line" wobble — touch devices only.
   useEffect(() => {
@@ -131,8 +124,7 @@ export default function MenuSection({ menu }: { menu: Category[] }) {
       </div>
 
       <ProductInfoOverlay
-        product={selected?.product ?? null}
-        variant={selected?.variant ?? "modal"}
+        product={selected}
         onClose={() => setSelected(null)}
       />
     </section>

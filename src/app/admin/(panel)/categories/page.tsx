@@ -42,18 +42,6 @@ function Fields({
             <option value="red">Kırmızı</option>
           </select>
         </div>
-        <div>
-          <label className={lbl}>Bilgi kutusu stili</label>
-          <select
-            name="infoStyle"
-            defaultValue={c?.infoStyle ?? "modal"}
-            className={inp}
-          >
-            <option value="modal">Modal</option>
-            <option value="sheet">Sheet (alttan)</option>
-            <option value="inline">Inline (kart içi)</option>
-          </select>
-        </div>
       </div>
       <div className="mt-3">
         <label className={lbl}>Not (ops. — ör. kahve özelleştirme)</label>
