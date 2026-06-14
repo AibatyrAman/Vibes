@@ -8,6 +8,26 @@ export type Price = number | PriceVariant[];
 
 export type Allergen = "süt" | "gluten" | "fındık" | "yumurta" | "soya";
 
+/** İçecek Anatomisi — bardak tipi (hangi line-art çerçeve/maske). */
+export type GlassType =
+  | "rocks"
+  | "highball"
+  | "martini"
+  | "coupe"
+  | "wine"
+  | "mug";
+/** Bardak içinde aşağıdan yukarı dizilen renkli sıvı katmanı. */
+export type DrinkLayer = { name: string; percent: number; color: string };
+/** Bardağın ağzına eklenen jest/süsleme. */
+export type Garnish =
+  | "lemon"
+  | "orange-peel"
+  | "olive"
+  | "mint"
+  | "straw"
+  | "coffee-bean"
+  | "cherry";
+
 export type Product = {
   /** DB satır id'si (seed verisinde yok) */
   id?: number;
@@ -29,6 +49,12 @@ export type Product = {
   kcal?: number;
   /** "Hikâye ▸" ile açılan metin */
   story?: string;
+  // --- içecek anatomisi (hepsi opsiyonel; glassType yoksa render edilmez) ---
+  glassType?: GlassType;
+  layers?: DrinkLayer[];
+  garnishes?: Garnish[];
+  /** yüklenen dekupe foto dosya adı; /api/media/<photo> ile servis edilir */
+  photo?: string;
 };
 
 export type SubGroup = { label: string; items: Product[] };

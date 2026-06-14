@@ -26,6 +26,8 @@ export default function ProductInfoOverlay({ product, onClose }: Props) {
 
   if (!product) return null;
 
+  const wide = !!product.glassType;
+
   return (
     <div
       className="fixed inset-0 z-[95] flex"
@@ -38,8 +40,12 @@ export default function ProductInfoOverlay({ product, onClose }: Props) {
         onClick={onClose}
         className="absolute inset-0 animate-[fadeIn_.2s_ease-out] bg-ink/60"
       />
-      <div className="relative z-10 m-auto w-[calc(100%-2rem)] max-w-md">
-        <div className="relative animate-[popUp_.24s_ease-out] border-2 border-ink bg-paper p-5 shadow-pop-lg">
+      <div
+        className={`relative z-10 m-auto w-[calc(100%-2rem)] ${
+          wide ? "max-w-lg" : "max-w-md"
+        }`}
+      >
+        <div className="relative max-h-[90vh] animate-[popUp_.24s_ease-out] overflow-y-auto border-2 border-ink bg-paper p-5 shadow-pop-lg">
           <ProductInfo product={product} />
         </div>
       </div>

@@ -12,7 +12,32 @@ import {
 } from "@/lib/auth";
 import * as repo from "@/lib/menu-repo";
 import type { ProductInput } from "@/lib/menu-repo";
-import type { Allergen, PriceVariant } from "@/data/menu";
+import { deleteUpload, saveUpload } from "@/lib/uploads";
+import type {
+  Allergen,
+  DrinkLayer,
+  Garnish,
+  GlassType,
+  PriceVariant,
+} from "@/data/menu";
+
+const GLASS_TYPES: GlassType[] = [
+  "rocks",
+  "highball",
+  "martini",
+  "coupe",
+  "wine",
+  "mug",
+];
+const GARNISHES: Garnish[] = [
+  "lemon",
+  "orange-peel",
+  "olive",
+  "mint",
+  "straw",
+  "coffee-bean",
+  "cherry",
+];
 
 function revalidateAll() {
   revalidatePath("/");
@@ -60,7 +85,7 @@ export async function logoutAction(): Promise<void> {
 
 // ---------- form parsing ----------
 
-function parseProductForm(fd: FormData): ProductInput {
+async function parseProductForm(fd: FormData): Promise<ProductInput> {
   const str = (k: string) => {
     const v = fd.get(k);
     return typeof v === "string" && v.trim() ? v.trim() : null;
@@ -82,6 +107,52 @@ function parseProductForm(fd: FormData): ProductInput {
     .filter(Boolean);
 
   const allergens = fd.getAll("allergens").map(String) as Allergen[];
+
+  // --- içecek anatomisi ---
+  const glassRaw = str("glassType");
+  const glassType =
+    glassRaw && GLASS_TYPES.includes(glassRaw as GlassType)
+      ? (glassRaw as GlassType)
+      : null;
+
+  const garnishes = fd
+    .getAll("garnishes")
+    .map(String)
+    .filter((g): g is Garnish => GARNISHES.includes(g as Garnish));
+
+  let layers: DrinkLayer[] = [];
+  try {
+    const parsed = JSON.parse(String(fd.get("layers") ?? "[]"));
+    if (Array.isArray(parsed))
+      layers = parsed
+        .map((x) => ({
+          name: String(x.name ?? "").trim(),
+          percent: Math.max(0, Math.min(100, Number(x.percent) || 0)),
+          color: /^#[0-9a-fA-F]{6}$/.test(String(x.color))
+            ? String(x.color)
+            : "#cccccc",
+        }))
+        .filter((l) => l.name && l.percent > 0);
+  } catch {
+    layers = [];
+  }
+
+  // foto: yeni dosya yüklendiyse kaydet; yoksa mevcut korunur, "kaldır"
+  // işaretliyse silinir.
+  const existingPhoto = str("photoExisting");
+  let photo: string | null = existingPhoto;
+  const removePhoto = bool("removePhoto");
+  const file = fd.get("photo");
+  if (file instanceof File && file.size > 0) {
+    const saved = await saveUpload(file);
+    if (saved) {
+      await deleteUpload(existingPhoto);
+      photo = saved;
+    }
+  } else if (removePhoto) {
+    await deleteUpload(existingPhoto);
+    photo = null;
+  }
 
   let variants: PriceVariant[] | null = null;
   const variantsRaw = str("variants");
@@ -115,6 +186,10 @@ function parseProductForm(fd: FormData): ProductInput {
     abv: num("abv"),
     kcal: num("kcal"),
     story: str("story"),
+    glassType,
+    layers,
+    garnishes,
+    photo,
   };
 }
 
@@ -122,7 +197,7 @@ function parseProductForm(fd: FormData): ProductInput {
 
 export async function createProductAction(formData: FormData): Promise<void> {
   await requireAdmin();
-  const input = parseProductForm(formData);
+  const input = await parseProductForm(formData);
   if (input.name && input.categoryId) repo.createProduct(input);
   revalidateAll();
   redirect("/admin");
@@ -133,7 +208,7 @@ export async function updateProductAction(
   formData: FormData,
 ): Promise<void> {
   await requireAdmin();
-  const input = parseProductForm(formData);
+  const input = await parseProductForm(formData);
   if (input.name && input.categoryId) repo.updateProduct(id, input);
   revalidateAll();
   redirect("/admin");
@@ -141,6 +216,7 @@ export async function updateProductAction(
 
 export async function deleteProductAction(id: number): Promise<void> {
   await requireAdmin();
+  await deleteUpload(repo.getProduct(id)?.photo);
   repo.deleteProduct(id);
   revalidateAll();
 }
@@ -148,6 +224,7 @@ export async function deleteProductAction(id: number): Promise<void> {
 /** Düzenleme sayfasındaki Sil butonu için — siler ve listeye döner. */
 export async function deleteProductAndBackAction(id: number): Promise<void> {
   await requireAdmin();
+  await deleteUpload(repo.getProduct(id)?.photo);
   repo.deleteProduct(id);
   revalidateAll();
   redirect("/admin");

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import type { Product } from "@/data/menu";
 import AllergenIcons from "./scrap/AllergenIcons";
+import DrinkAnatomy from "./anatomy/DrinkAnatomy";
 
 function PriceBlock({ product }: { product: Product }) {
   if (Array.isArray(product.price)) {
@@ -77,6 +78,9 @@ export default function ProductInfo({ product }: { product: Product }) {
         </div>
         <PriceBlock product={product} />
       </div>
+
+      {/* içecek anatomisi — line-art bardak + dolum + flip */}
+      {product.glassType && <DrinkAnatomy product={product} />}
 
       {/* içindekiler — ilk ve belirgin */}
       {ingredients.length > 0 && (

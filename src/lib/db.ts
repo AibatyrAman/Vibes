@@ -82,6 +82,26 @@ function migrate(db: Database.Database) {
   db.prepare(
     "INSERT OR IGNORE INTO settings (key, value) VALUES ('campaigns_enabled', '1')",
   ).run();
+
+  // İçecek Anatomisi — mevcut DB'lere kolonları idempotent ekle.
+  addColumnIfMissing(db, "products", "glass_type", "TEXT");
+  addColumnIfMissing(db, "products", "layers", "TEXT");
+  addColumnIfMissing(db, "products", "garnishes", "TEXT");
+  addColumnIfMissing(db, "products", "photo", "TEXT");
+}
+
+/** Kolon yoksa ekler — `ALTER TABLE ... ADD COLUMN` idempotent migrasyon. */
+function addColumnIfMissing(
+  db: Database.Database,
+  table: string,
+  column: string,
+  ddl: string,
+) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as {
+    name: string;
+  }[];
+  if (!cols.some((c) => c.name === column))
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
 }
 
 /** İlk açılışta menü.ts'teki mevcut menüyü DB'ye taşır. */

@@ -1,6 +1,14 @@
 import "server-only";
 import { getDb } from "./db";
-import type { Allergen, Category, PriceVariant, Product } from "@/data/menu";
+import type {
+  Allergen,
+  Category,
+  DrinkLayer,
+  Garnish,
+  GlassType,
+  PriceVariant,
+  Product,
+} from "@/data/menu";
 
 type ProductRow = {
   id: number;
@@ -19,6 +27,10 @@ type ProductRow = {
   abv: number | null;
   kcal: number | null;
   story: string | null;
+  glass_type: string | null;
+  layers: string | null;
+  garnishes: string | null;
+  photo: string | null;
   position: number;
 };
 
@@ -64,6 +76,10 @@ export type AdminProduct = {
   abv: number | null;
   kcal: number | null;
   story: string | null;
+  glassType: GlassType | null;
+  layers: DrinkLayer[];
+  garnishes: Garnish[];
+  photo: string | null;
   position: number;
 };
 
@@ -93,6 +109,10 @@ function toPublicProduct(r: ProductRow): Product {
     abv: r.abv ?? undefined,
     kcal: r.kcal ?? undefined,
     story: r.story ?? undefined,
+    glassType: (r.glass_type as GlassType | null) ?? undefined,
+    layers: r.layers ? parseArr<DrinkLayer>(r.layers) : undefined,
+    garnishes: r.garnishes ? parseArr<Garnish>(r.garnishes) : undefined,
+    photo: r.photo ?? undefined,
   };
 }
 
@@ -175,6 +195,10 @@ function toAdminProduct(r: ProductRow & { category_title?: string }): AdminProdu
     abv: r.abv,
     kcal: r.kcal,
     story: r.story,
+    glassType: (r.glass_type as GlassType | null) ?? null,
+    layers: parseArr<DrinkLayer>(r.layers),
+    garnishes: parseArr<Garnish>(r.garnishes),
+    photo: r.photo,
     position: r.position,
   };
 }
@@ -230,6 +254,10 @@ function productParams(input: ProductInput) {
     abv: input.abv ?? null,
     kcal: input.kcal ?? null,
     story: input.story || null,
+    glass_type: input.glassType || null,
+    layers: input.layers?.length ? JSON.stringify(input.layers) : null,
+    garnishes: input.garnishes?.length ? JSON.stringify(input.garnishes) : null,
+    photo: input.photo || null,
   };
 }
 
@@ -246,9 +274,9 @@ export function createProduct(input: ProductInput): number {
   const res = db
     .prepare(
       `INSERT INTO products
-        (category_id,sub_group,name,description,price,variants,on_sale,sale_price,is_new,tag,ingredients,allergens,abv,kcal,story,position)
+        (category_id,sub_group,name,description,price,variants,on_sale,sale_price,is_new,tag,ingredients,allergens,abv,kcal,story,glass_type,layers,garnishes,photo,position)
        VALUES
-        (@category_id,@sub_group,@name,@description,@price,@variants,@on_sale,@sale_price,@is_new,@tag,@ingredients,@allergens,@abv,@kcal,@story,@position)`,
+        (@category_id,@sub_group,@name,@description,@price,@variants,@on_sale,@sale_price,@is_new,@tag,@ingredients,@allergens,@abv,@kcal,@story,@glass_type,@layers,@garnishes,@photo,@position)`,
     )
     .run({ ...productParams(input), position: pos });
   return Number(res.lastInsertRowid);
@@ -261,7 +289,8 @@ export function updateProduct(id: number, input: ProductInput): void {
         category_id=@category_id, sub_group=@sub_group, name=@name, description=@description,
         price=@price, variants=@variants, on_sale=@on_sale, sale_price=@sale_price,
         is_new=@is_new, tag=@tag, ingredients=@ingredients, allergens=@allergens,
-        abv=@abv, kcal=@kcal, story=@story
+        abv=@abv, kcal=@kcal, story=@story,
+        glass_type=@glass_type, layers=@layers, garnishes=@garnishes, photo=@photo
        WHERE id=@id`,
     )
     .run({ ...productParams(input), id });

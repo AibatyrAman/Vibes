@@ -43,6 +43,8 @@
   /* Giriş/yükleme animasyonu AKICI (stop-motion steps yok) — ilk açılış pürüzsüz */
   --animate-pop-in: popIn 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) both;
   --animate-napkin: napkinUnfold 0.6s steps(7) both;
+  /* İçecek anatomisi: sıvı aşağıdan yukarı dolar (akıcı) */
+  --animate-drink-fill: drinkFill 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 /* Fonts come from next/font (CSS vars set on <html>) — inline so Tailwind
@@ -175,6 +177,12 @@
   66%  { transform: scaleX(0.95) scaleY(0.92) rotate(4deg); }
   85%  { transform: scale(1.03) rotate(-3deg); }
   100% { transform: scale(1) rotate(-2deg); }
+}
+
+/* İçecek anatomisi — sıvı bardak tabanından yukarı yükselir. */
+@keyframes drinkFill {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
 }
 
 /* Product info overlay entrances (smooth, not stop-motion). */

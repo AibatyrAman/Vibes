@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Allergen } from "@/data/menu";
 import type { AdminCategory, AdminProduct } from "@/lib/menu-repo";
+import AnatomyFields from "./AnatomyFields";
 
 const ALLERGENS: Allergen[] = ["süt", "gluten", "fındık", "yumurta", "soya"];
 const inp =
@@ -23,6 +24,7 @@ export default function ProductForm({
   return (
     <form
       action={action}
+      encType="multipart/form-data"
       className="grid gap-5 border-2 border-ink bg-paper p-5 shadow-pop sm:p-6"
     >
       <div className="grid gap-4 sm:grid-cols-2">
@@ -190,6 +192,13 @@ export default function ProductForm({
         />
         “Yeni” rozeti göster
       </label>
+
+      <AnatomyFields
+        glassType={product?.glassType ?? null}
+        layers={product?.layers}
+        garnishes={product?.garnishes}
+        photo={product?.photo ?? null}
+      />
 
       <div className="flex flex-wrap gap-3 border-t-2 border-ink/10 pt-5">
         <button className="border-2 border-ink bg-navy px-6 py-3 font-display text-xl uppercase tracking-wide text-paper shadow-pop transition-transform hover:-translate-y-0.5">
