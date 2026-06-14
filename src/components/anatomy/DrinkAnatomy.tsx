@@ -3,19 +3,25 @@
 import { useId, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import type { Product } from "@/data/menu";
+import { pointsToCavity, pointsToClip } from "@/lib/glass-cavity";
 import { GLASSES } from "./glasses";
+import { useGlassCavity } from "./GlassCavityContext";
 
 const STAGE_H = 240;
 
 /** İnteraktif "İçecek Anatomisi": line-art bardak, aşağıdan yukarı dolan
- *  renkli katmanlar, daktilo etiketleri, jestler ve gerçek fotoğrafa 3D flip. */
+ *  renkli katmanlar, daktilo etiketleri ve gerçek fotoğrafa 3D flip. */
 export default function DrinkAnatomy({ product }: { product: Product }) {
   const [flipped, setFlipped] = useState(false);
   const clipId = useId();
+  const override = useGlassCavity(product.glassType);
 
   if (!product.glassType || !GLASSES[product.glassType]) return null;
   const glass = GLASSES[product.glassType];
   const layers = product.layers ?? [];
+  // dolum poligonu: admin kalibrasyonu varsa onu, yoksa varsayılanı kullan
+  const points = override ?? glass.points;
+  const clipPath = pointsToClip(points);
 
   // her bardağın kendi viewBox'ı: "x y w h"
   const [vbX, vbY, vbW, vbH] = glass.viewBox.split(/\s+/).map(Number);
@@ -30,7 +36,7 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
     gh = gw / aspect;
   }
 
-  const [yTop, yBottom] = glass.cavity;
+  const [yTop, yBottom] = pointsToCavity(points);
   const H = yBottom - yTop;
 
   // Katmanları tabandan yukarı yerleştir; dikey merkezlerini de hesapla.
@@ -68,7 +74,7 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
                 >
                   <defs>
                     <clipPath id={clipId}>
-                      <path d={glass.clip} />
+                      <path d={clipPath} />
                     </clipPath>
                   </defs>
                   {/* sıvılar (maskeli) — taban referanslı yükselme animasyonu */}

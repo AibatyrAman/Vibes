@@ -5,7 +5,12 @@ import MenuSection from "@/components/MenuSection";
 import SiteFooter from "@/components/SiteFooter";
 import VirtualNapkin from "@/components/VirtualNapkin";
 import GrainOverlay from "@/components/scrap/GrainOverlay";
-import { getActiveCampaigns, getMenu, getSetting } from "@/lib/menu-repo";
+import {
+  getActiveCampaigns,
+  getGlassCavities,
+  getMenu,
+  getSetting,
+} from "@/lib/menu-repo";
 
 // Menü SQLite'tan okunuyor; admin değişiklikleri anında yansısın.
 export const dynamic = "force-dynamic";
@@ -18,13 +23,18 @@ export default function Home() {
   );
   const campaignsEnabled = getSetting("campaigns_enabled", "1") === "1";
   const campaigns = campaignsEnabled ? getActiveCampaigns() : [];
+  const glassCavities = getGlassCavities();
   return (
     <>
       <Header />
       <Ticker tone="red" />
       <main>
         <Hero />
-        <MenuSection menu={menu} campaigns={campaigns} />
+        <MenuSection
+          menu={menu}
+          campaigns={campaigns}
+          glassCavities={glassCavities}
+        />
       </main>
       <SiteFooter />
       <VirtualNapkin note={chefNote} />

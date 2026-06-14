@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import type { Category, Product } from "@/data/menu";
 import type { AdminCampaign } from "@/lib/menu-repo";
+import type { Point } from "@/lib/glass-cavity";
 import MenuAccordion from "./MenuAccordion";
 import ProductInfoOverlay from "./ProductInfoOverlay";
 import CampaignCard from "./CampaignCard";
+import { GlassCavityProvider } from "./anatomy/GlassCavityContext";
 
 const CROT = [-1.5, 1, -1, 1.5, -1, 1];
 
@@ -21,9 +23,11 @@ function matches(p: Product, q: string) {
 export default function MenuSection({
   menu,
   campaigns = [],
+  glassCavities = {},
 }: {
   menu: Category[];
   campaigns?: AdminCampaign[];
+  glassCavities?: Record<string, Point[]>;
 }) {
   const [open, setOpen] = useState<Set<string>>(
     () => new Set(menu.filter((c) => c.defaultOpen).map((c) => c.id)),
@@ -75,6 +79,7 @@ export default function MenuSection({
   }, [open, q]);
 
   return (
+    <GlassCavityProvider value={glassCavities}>
     <section
       id="menu"
       className="scroll-mt-16 border-b-4 border-ink bg-paper py-14 sm:py-20"
@@ -156,5 +161,6 @@ export default function MenuSection({
         onClose={() => setSelected(null)}
       />
     </section>
+    </GlassCavityProvider>
   );
 }

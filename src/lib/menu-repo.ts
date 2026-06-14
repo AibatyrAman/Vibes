@@ -8,6 +8,7 @@ import type {
   PriceVariant,
   Product,
 } from "@/data/menu";
+import { parsePoints, type Point } from "./glass-cavity";
 
 type ProductRow = {
   id: number;
@@ -394,6 +395,21 @@ export function setSetting(key: string, value: string): void {
       "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
     )
     .run(key, value);
+}
+
+// ---------- bardak dolum poligonları (kalibrasyon override'ları) ----------
+
+/** settings'teki tüm `glass_cav_*` override'larını { type: Point[] } döndürür. */
+export function getGlassCavities(): Record<string, Point[]> {
+  const rows = getDb()
+    .prepare("SELECT key, value FROM settings WHERE key LIKE 'glass_cav_%'")
+    .all() as { key: string; value: string }[];
+  const out: Record<string, Point[]> = {};
+  for (const r of rows) {
+    const pts = parsePoints(r.value);
+    if (pts && pts.length >= 3) out[r.key.replace("glass_cav_", "")] = pts;
+  }
+  return out;
 }
 
 // ---------- kampanyalar ----------

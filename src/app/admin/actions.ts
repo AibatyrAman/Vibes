@@ -283,6 +283,33 @@ export async function deleteCategoryAction(id: number): Promise<void> {
 
 // ---------- ayarlar ----------
 
+export async function saveGlassCavityAction(
+  type: string,
+  points: [number, number][],
+): Promise<void> {
+  await requireAdmin();
+  if (!GLASS_TYPES.includes(type as GlassType)) return;
+  const clean = (Array.isArray(points) ? points : [])
+    .filter(
+      (p) =>
+        Array.isArray(p) &&
+        typeof p[0] === "number" &&
+        typeof p[1] === "number",
+    )
+    .map(([x, y]) => [Math.round(x), Math.round(y)] as [number, number]);
+  if (clean.length < 3) return;
+  repo.setSetting(`glass_cav_${type}`, JSON.stringify(clean));
+  revalidateAll();
+}
+
+/** Varsayılana dön — override kaydını boşaltır (getGlassCavities yok sayar). */
+export async function resetGlassCavityAction(type: string): Promise<void> {
+  await requireAdmin();
+  if (!GLASS_TYPES.includes(type as GlassType)) return;
+  repo.setSetting(`glass_cav_${type}`, "");
+  revalidateAll();
+}
+
 export async function updateChefNoteAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const note = String(formData.get("chefNote") ?? "").trim();

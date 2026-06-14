@@ -38,6 +38,12 @@ export default async function PanelLayout({
               Kampanyalar
             </Link>
             <Link
+              href="/admin/glasses"
+              className="transition-colors hover:text-red"
+            >
+              Bardaklar
+            </Link>
+            <Link
               href="/admin/settings"
               className="transition-colors hover:text-red"
             >
