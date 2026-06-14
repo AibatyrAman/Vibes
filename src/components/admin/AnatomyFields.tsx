@@ -29,6 +29,14 @@ export default function AnatomyFields({
     setLayers((ls) => ls.filter((_, j) => j !== i));
   const add = () =>
     setLayers((ls) => [...ls, { name: "", percent: 0, color: "#db1010" }]);
+  const move = (i: number, dir: -1 | 1) =>
+    setLayers((ls) => {
+      const j = i + dir;
+      if (j < 0 || j >= ls.length) return ls;
+      const next = [...ls];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
 
   const total = layers.reduce((s, l) => s + (Number(l.percent) || 0), 0);
 
@@ -75,6 +83,26 @@ export default function AnatomyFields({
               key={i}
               className="flex items-center gap-2 border-2 border-ink bg-white p-2"
             >
+              <div className="flex shrink-0 flex-col gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => move(i, -1)}
+                  disabled={i === 0}
+                  aria-label="Yukarı taşı"
+                  className="grid size-4 place-items-center border border-ink bg-paper text-[9px] leading-none disabled:opacity-25"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(i, 1)}
+                  disabled={i === layers.length - 1}
+                  aria-label="Aşağı taşı"
+                  className="grid size-4 place-items-center border border-ink bg-paper text-[9px] leading-none disabled:opacity-25"
+                >
+                  ▼
+                </button>
+              </div>
               <input
                 aria-label="Renk"
                 type="color"

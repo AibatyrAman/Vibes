@@ -215,6 +215,15 @@ export async function deleteProductAndBackAction(id: number): Promise<void> {
   redirect("/admin");
 }
 
+export async function moveProductAction(
+  id: number,
+  dir: number,
+): Promise<void> {
+  await requireAdmin();
+  repo.moveProduct(id, dir < 0 ? -1 : 1);
+  revalidateAll();
+}
+
 export async function quickUpdateAction(
   id: number,
   patch: {
@@ -278,6 +287,15 @@ export async function updateCategoryAction(
 export async function deleteCategoryAction(id: number): Promise<void> {
   await requireAdmin();
   repo.deleteCategory(id);
+  revalidateAll();
+}
+
+export async function moveCategoryAction(
+  id: number,
+  dir: number,
+): Promise<void> {
+  await requireAdmin();
+  repo.moveCategory(id, dir < 0 ? -1 : 1);
   revalidateAll();
 }
 

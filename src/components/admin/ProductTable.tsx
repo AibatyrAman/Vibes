@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { deleteProductAction, quickUpdateAction } from "@/app/admin/actions";
+import {
+  deleteProductAction,
+  moveProductAction,
+  quickUpdateAction,
+} from "@/app/admin/actions";
 import type { AdminProduct } from "@/lib/menu-repo";
 
 export default function ProductTable({
@@ -33,6 +37,7 @@ export default function ProductTable({
       <table className="w-full min-w-[820px] border-collapse text-left">
         <thead>
           <tr className="bg-ink font-mono text-[11px] uppercase tracking-widest text-paper">
+            <th className="px-2 py-2 w-12 text-center">Sıra</th>
             <th className="px-3 py-2">Ürün</th>
             <th className="px-3 py-2 w-28">Fiyat ₺</th>
             <th className="px-3 py-2 w-28">İndirimli ₺</th>
@@ -46,8 +51,35 @@ export default function ProductTable({
             const showCat =
               i === 0 || products[i - 1].categoryTitle !== p.categoryTitle;
             const isVariant = !!p.variants?.length;
+            const firstInCat =
+              i === 0 || products[i - 1].categoryId !== p.categoryId;
+            const lastInCat =
+              i === products.length - 1 ||
+              products[i + 1].categoryId !== p.categoryId;
             return (
               <tr key={p.id} className="border-t-2 border-ink/10 align-middle">
+                <td className="px-2 py-2">
+                  <div className="flex flex-col items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label="Yukarı taşı"
+                      disabled={firstInCat || pending}
+                      onClick={() => run(() => moveProductAction(p.id, -1))}
+                      className="grid size-6 place-items-center border-2 border-ink bg-paper text-xs leading-none transition-transform hover:-translate-y-px disabled:opacity-25"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Aşağı taşı"
+                      disabled={lastInCat || pending}
+                      onClick={() => run(() => moveProductAction(p.id, 1))}
+                      className="grid size-6 place-items-center border-2 border-ink bg-paper text-xs leading-none transition-transform hover:translate-y-px disabled:opacity-25"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </td>
                 <td className="px-3 py-2">
                   {showCat && (
                     <div className="mb-1 font-display text-lg uppercase leading-none text-red">

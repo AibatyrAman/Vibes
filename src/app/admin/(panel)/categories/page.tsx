@@ -2,6 +2,7 @@ import { listCategories } from "@/lib/menu-repo";
 import {
   createCategoryAction,
   deleteCategoryAction,
+  moveCategoryAction,
   updateCategoryAction,
 } from "@/app/admin/actions";
 import ConfirmDelete from "@/components/admin/ConfirmDelete";
@@ -82,30 +83,53 @@ export default function CategoriesPage() {
 
       {/* mevcut kategoriler */}
       <div className="grid gap-5">
-        {cats.map((c) => (
-          <form
-            key={c.id}
-            action={updateCategoryAction.bind(null, c.id)}
-            className="grid gap-3 border-2 border-ink bg-paper p-5"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="font-display text-2xl uppercase text-navy">
-                {c.title}
-              </h3>
+        {cats.map((c, i) => (
+          <div key={c.id} className="border-2 border-ink bg-paper p-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                {/* sıra: yukarı / aşağı */}
+                <div className="flex flex-col gap-1">
+                  <form action={moveCategoryAction.bind(null, c.id, -1)}>
+                    <button
+                      type="submit"
+                      disabled={i === 0}
+                      aria-label="Yukarı taşı"
+                      className="grid size-7 place-items-center border-2 border-ink bg-paper font-mono text-sm leading-none transition-transform hover:-translate-y-px disabled:opacity-25"
+                    >
+                      ▲
+                    </button>
+                  </form>
+                  <form action={moveCategoryAction.bind(null, c.id, 1)}>
+                    <button
+                      type="submit"
+                      disabled={i === cats.length - 1}
+                      aria-label="Aşağı taşı"
+                      className="grid size-7 place-items-center border-2 border-ink bg-paper font-mono text-sm leading-none transition-transform hover:translate-y-px disabled:opacity-25"
+                    >
+                      ▼
+                    </button>
+                  </form>
+                </div>
+                <h3 className="font-display text-2xl uppercase text-navy">
+                  {c.title}
+                </h3>
+              </div>
               <code className="font-mono text-[10px] text-ink/40">/{c.slug}</code>
             </div>
-            <Fields c={c} />
-            <div className="flex gap-3">
-              <button className="border-2 border-ink bg-ink px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-widest text-paper transition-transform hover:-translate-y-0.5">
-                Kaydet
-              </button>
-              <ConfirmDelete
-                action={deleteCategoryAction.bind(null, c.id)}
-                message={`"${c.title}" ve içindeki TÜM ürünler silinsin mi?`}
-                label="Kategoriyi sil"
-              />
-            </div>
-          </form>
+            <form action={updateCategoryAction.bind(null, c.id)} className="grid gap-3">
+              <Fields c={c} />
+              <div className="flex gap-3">
+                <button className="border-2 border-ink bg-ink px-5 py-2.5 font-mono text-xs font-bold uppercase tracking-widest text-paper transition-transform hover:-translate-y-0.5">
+                  Kaydet
+                </button>
+                <ConfirmDelete
+                  action={deleteCategoryAction.bind(null, c.id)}
+                  message={`"${c.title}" ve içindeki TÜM ürünler silinsin mi?`}
+                  label="Kategoriyi sil"
+                />
+              </div>
+            </form>
+          </div>
         ))}
       </div>
     </div>

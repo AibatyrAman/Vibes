@@ -320,6 +320,28 @@ export function deleteProduct(id: number): void {
   getDb().prepare("DELETE FROM products WHERE id=?").run(id);
 }
 
+/** Ürünü kendi kategorisi içinde bir sıra yukarı/aşağı taşır. */
+export function moveProduct(id: number, dir: -1 | 1): void {
+  const db = getDb();
+  const row = db.prepare("SELECT category_id FROM products WHERE id=?").get(id) as
+    | { category_id: number }
+    | undefined;
+  if (!row) return;
+  const ids = (
+    db
+      .prepare(
+        "SELECT id FROM products WHERE category_id=? ORDER BY position, id",
+      )
+      .all(row.category_id) as { id: number }[]
+  ).map((r) => r.id);
+  const i = ids.indexOf(id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  const upd = db.prepare("UPDATE products SET position=? WHERE id=?");
+  db.transaction(() => ids.forEach((pid, idx) => upd.run(idx, pid)))();
+}
+
 export function createCategory(input: {
   slug: string;
   title: string;
@@ -378,6 +400,22 @@ export function updateCategory(
 
 export function deleteCategory(id: number): void {
   getDb().prepare("DELETE FROM categories WHERE id=?").run(id);
+}
+
+/** Kategoriyi bir sıra yukarı/aşağı taşır (menü sırasını değiştirir). */
+export function moveCategory(id: number, dir: -1 | 1): void {
+  const db = getDb();
+  const ids = (
+    db.prepare("SELECT id FROM categories ORDER BY position, id").all() as {
+      id: number;
+    }[]
+  ).map((r) => r.id);
+  const i = ids.indexOf(id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  const upd = db.prepare("UPDATE categories SET position=? WHERE id=?");
+  db.transaction(() => ids.forEach((cid, idx) => upd.run(idx, cid)))();
 }
 
 // ---------- ayarlar (anahtar/değer) ----------
