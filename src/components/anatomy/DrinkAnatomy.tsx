@@ -4,9 +4,9 @@ import { useId, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import type { Product } from "@/data/menu";
 import { GLASSES } from "./glasses";
-import { GARNISH_ART } from "./garnishes";
+import { GARNISH_ART, GARNISH_IMAGES } from "./garnishes";
 
-const VB_H = 170;
+const STAGE_H = 240;
 
 /** İnteraktif "İçecek Anatomisi": line-art bardak, aşağıdan yukarı dolan
  *  renkli katmanlar, daktilo etiketleri, jestler ve gerçek fotoğrafa 3D flip. */
@@ -18,10 +18,16 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
   const glass = GLASSES[product.glassType];
   const layers = product.layers ?? [];
   const garnishes = product.garnishes ?? [];
+
+  // her bardağın kendi viewBox'ı: "x y w h"
+  const [vbX, vbY, vbW, vbH] = glass.viewBox.split(/\s+/).map(Number);
+  const px = (x: number) => ((x - vbX) / vbW) * 100; // viewBox → yüzde
+  const py = (y: number) => ((y - vbY) / vbH) * 100;
+
   const [yTop, yBottom] = glass.cavity;
   const H = yBottom - yTop;
 
-  // Katmanları tabandan yukarı yerleştir; her birinin dikey merkezini de hesapla.
+  // Katmanları tabandan yukarı yerleştir; dikey merkezlerini de hesapla.
   const placed = layers.map((l, i) => {
     const below = layers
       .slice(0, i)
@@ -47,7 +53,7 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
               {/* bardak */}
               <div
                 className="relative shrink-0 text-navy"
-                style={{ height: 240, width: (240 * 120) / VB_H }}
+                style={{ height: STAGE_H, width: (STAGE_H * vbW) / vbH }}
               >
                 <svg
                   viewBox={glass.viewBox}
@@ -71,8 +77,8 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
                       {placed.map((l, i) => (
                         <rect
                           key={i}
-                          x={0}
-                          width={120}
+                          x={vbX}
+                          width={vbW}
                           y={l.y}
                           height={l.h}
                           fill={l.color}
@@ -80,46 +86,65 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
                       ))}
                     </g>
                   </g>
-                  {/* kontur (line-art) */}
-                  <g
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={4}
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                  >
-                    {glass.outline.map((d, i) => (
-                      <path key={i} d={d} />
-                    ))}
-                  </g>
+                  {/* kontur — traslanmış bardaklar dolu-çizgi, el-çizimi stroke */}
+                  {glass.filled ? (
+                    <g fill="currentColor" stroke="none">
+                      {glass.outline.map((d, i) => (
+                        <path key={i} d={d} />
+                      ))}
+                    </g>
+                  ) : (
+                    <g
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={4}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                    >
+                      {glass.outline.map((d, i) => (
+                        <path key={i} d={d} />
+                      ))}
+                    </g>
+                  )}
                 </svg>
 
-                {/* jestler — ağız noktasına */}
-                {garnishes.map((g, i) => (
-                  <span
-                    key={g}
-                    className="pointer-events-none absolute block size-7 text-navy"
-                    style={{
-                      left: `${(glass.rim.x / 120) * 100}%`,
-                      top: `${(glass.rim.y / VB_H) * 100}%`,
-                      transform: `translate(calc(-50% + ${
-                        (i - (garnishes.length - 1) / 2) * 18
-                      }px), -70%)`,
-                    }}
-                  >
-                    {GARNISH_ART[g]}
-                  </span>
-                ))}
+                {/* jestler — ağız noktasına (renkli görsel varsa onu, yoksa line-art) */}
+                {garnishes.map((g, i) => {
+                  const img = GARNISH_IMAGES[g];
+                  const offset = (i - (garnishes.length - 1) / 2) * 22;
+                  return (
+                    <span
+                      key={g}
+                      className="pointer-events-none absolute block size-9 text-navy"
+                      style={{
+                        left: `${px(glass.rim.x)}%`,
+                        top: `${py(glass.rim.y)}%`,
+                        transform: `translate(calc(-50% + ${offset}px), -72%)`,
+                      }}
+                    >
+                      {img ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={img}
+                          alt=""
+                          className="size-full object-contain"
+                        />
+                      ) : (
+                        GARNISH_ART[g]
+                      )}
+                    </span>
+                  );
+                })}
               </div>
 
               {/* daktilo etiketleri — her katmanın hizasında */}
-              <div className="relative flex-1" style={{ height: 240 }}>
+              <div className="relative flex-1" style={{ height: STAGE_H }}>
                 {placed.map((l, i) => (
                   <div
                     key={i}
                     className="absolute left-0 flex items-center gap-1.5"
                     style={{
-                      top: `${(l.center / VB_H) * 100}%`,
+                      top: `${py(l.center)}%`,
                       transform: "translateY(-50%)",
                     }}
                   >

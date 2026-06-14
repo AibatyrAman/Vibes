@@ -48,3 +48,6 @@ vibes_menu.pdf
 # SQLite veritabanı (VPS'te kalıcı)
 /data
 !.env.example
+
+# AI/Inkscape çizim kaynakları (ham; optimize hâlleri public/ ve glasses.tsx içinde)
+vibes_glass/

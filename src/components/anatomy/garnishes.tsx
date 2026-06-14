@@ -69,6 +69,12 @@ export const GARNISH_ART: Record<Garnish, ReactNode> = {
   ),
 };
 
+/** Renkli (gerçek) jest görselleri — public/anatomy/garnishes altında.
+ *  Burada olmayan jestler line-art (GARNISH_ART) ile gösterilir. */
+export const GARNISH_IMAGES: Partial<Record<Garnish, string>> = {
+  lemon: "/anatomy/garnishes/lemon.svg",
+};
+
 export const GARNISH_LABELS: Record<Garnish, string> = {
   lemon: "Limon dilimi",
   "orange-peel": "Portakal kabuğu",
