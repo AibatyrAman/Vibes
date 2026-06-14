@@ -196,7 +196,6 @@ export default function ProductForm({
       <AnatomyFields
         glassType={product?.glassType ?? null}
         layers={product?.layers}
-        garnishes={product?.garnishes}
         photo={product?.photo ?? null}
       />
 

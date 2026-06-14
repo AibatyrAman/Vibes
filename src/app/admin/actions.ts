@@ -16,7 +16,6 @@ import { deleteUpload, saveUpload } from "@/lib/uploads";
 import type {
   Allergen,
   DrinkLayer,
-  Garnish,
   GlassType,
   PriceVariant,
 } from "@/data/menu";
@@ -27,16 +26,8 @@ const GLASS_TYPES: GlassType[] = [
   "martini",
   "coupe",
   "wine",
+  "tekila",
   "mug",
-];
-const GARNISHES: Garnish[] = [
-  "lemon",
-  "orange-peel",
-  "olive",
-  "mint",
-  "straw",
-  "coffee-bean",
-  "cherry",
 ];
 
 function revalidateAll() {
@@ -115,11 +106,6 @@ async function parseProductForm(fd: FormData): Promise<ProductInput> {
       ? (glassRaw as GlassType)
       : null;
 
-  const garnishes = fd
-    .getAll("garnishes")
-    .map(String)
-    .filter((g): g is Garnish => GARNISHES.includes(g as Garnish));
-
   let layers: DrinkLayer[] = [];
   try {
     const parsed = JSON.parse(String(fd.get("layers") ?? "[]"));
@@ -188,7 +174,6 @@ async function parseProductForm(fd: FormData): Promise<ProductInput> {
     story: str("story"),
     glassType,
     layers,
-    garnishes,
     photo,
   };
 }

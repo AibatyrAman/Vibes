@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
-import type { DrinkLayer, Garnish, GlassType } from "@/data/menu";
+import type { DrinkLayer, GlassType } from "@/data/menu";
 import { GLASS_LABELS, GLASSES } from "@/components/anatomy/glasses";
-import { GARNISH_LABELS } from "@/components/anatomy/garnishes";
 
 const inp =
   "w-full border-2 border-ink bg-white px-3 py-2 font-mono text-sm outline-none focus:shadow-pop-sm";
@@ -12,17 +11,14 @@ const lbl =
   "mb-1 block font-mono text-xs font-bold uppercase tracking-widest text-ink/60";
 
 const GLASS_KEYS = Object.keys(GLASSES) as GlassType[];
-const GARNISH_KEYS = Object.keys(GARNISH_LABELS) as Garnish[];
 
 export default function AnatomyFields({
   glassType,
   layers: initLayers,
-  garnishes,
   photo,
 }: {
   glassType?: GlassType | null;
   layers?: DrinkLayer[];
-  garnishes?: Garnish[];
   photo?: string | null;
 }) {
   const [layers, setLayers] = useState<DrinkLayer[]>(initLayers ?? []);
@@ -129,28 +125,6 @@ export default function AnatomyFields({
         </button>
 
         <input type="hidden" name="layers" value={JSON.stringify(layers)} />
-      </div>
-
-      {/* jestler */}
-      <div>
-        <label className={lbl}>Jestler / Süslemeler</label>
-        <div className="flex flex-wrap gap-2.5">
-          {GARNISH_KEYS.map((g) => (
-            <label
-              key={g}
-              className="flex items-center gap-1.5 border-2 border-ink bg-white px-2.5 py-1.5 font-mono text-xs"
-            >
-              <input
-                type="checkbox"
-                name="garnishes"
-                value={g}
-                defaultChecked={garnishes?.includes(g)}
-                className="accent-[#1800ad]"
-              />
-              {GARNISH_LABELS[g]}
-            </label>
-          ))}
-        </div>
       </div>
 
       {/* gerçek foto */}

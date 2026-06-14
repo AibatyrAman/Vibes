@@ -15,18 +15,10 @@ export type GlassType =
   | "martini"
   | "coupe"
   | "wine"
+  | "tekila"
   | "mug";
 /** Bardak içinde aşağıdan yukarı dizilen renkli sıvı katmanı. */
 export type DrinkLayer = { name: string; percent: number; color: string };
-/** Bardağın ağzına eklenen jest/süsleme. */
-export type Garnish =
-  | "lemon"
-  | "orange-peel"
-  | "olive"
-  | "mint"
-  | "straw"
-  | "coffee-bean"
-  | "cherry";
 
 export type Product = {
   /** DB satır id'si (seed verisinde yok) */
@@ -52,7 +44,6 @@ export type Product = {
   // --- içecek anatomisi (hepsi opsiyonel; glassType yoksa render edilmez) ---
   glassType?: GlassType;
   layers?: DrinkLayer[];
-  garnishes?: Garnish[];
   /** yüklenen dekupe foto dosya adı; /api/media/<photo> ile servis edilir */
   photo?: string;
 };

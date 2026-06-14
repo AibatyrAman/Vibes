@@ -86,7 +86,6 @@ function migrate(db: Database.Database) {
   // İçecek Anatomisi — mevcut DB'lere kolonları idempotent ekle.
   addColumnIfMissing(db, "products", "glass_type", "TEXT");
   addColumnIfMissing(db, "products", "layers", "TEXT");
-  addColumnIfMissing(db, "products", "garnishes", "TEXT");
   addColumnIfMissing(db, "products", "photo", "TEXT");
 }
 

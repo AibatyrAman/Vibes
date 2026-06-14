@@ -4,7 +4,6 @@ import { useId, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import type { Product } from "@/data/menu";
 import { GLASSES } from "./glasses";
-import { GARNISH_ART, GARNISH_IMAGES } from "./garnishes";
 
 const STAGE_H = 240;
 
@@ -17,12 +16,19 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
   if (!product.glassType || !GLASSES[product.glassType]) return null;
   const glass = GLASSES[product.glassType];
   const layers = product.layers ?? [];
-  const garnishes = product.garnishes ?? [];
 
   // her bardağın kendi viewBox'ı: "x y w h"
   const [vbX, vbY, vbW, vbH] = glass.viewBox.split(/\s+/).map(Number);
-  const px = (x: number) => ((x - vbX) / vbW) * 100; // viewBox → yüzde
-  const py = (y: number) => ((y - vbY) / vbH) * 100;
+  const py = (y: number) => ((y - vbY) / vbH) * 100; // viewBox Y → yüzde
+
+  // bardak kutusu: yükseklik 240, ama genişlik 190'ı aşmasın (geniş kupa için)
+  const aspect = vbW / vbH;
+  let gh = STAGE_H;
+  let gw = gh * aspect;
+  if (gw > 190) {
+    gw = 190;
+    gh = gw / aspect;
+  }
 
   const [yTop, yBottom] = glass.cavity;
   const H = yBottom - yTop;
@@ -52,8 +58,8 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
             <div className="flex items-stretch gap-2">
               {/* bardak */}
               <div
-                className="relative shrink-0 text-navy"
-                style={{ height: STAGE_H, width: (STAGE_H * vbW) / vbH }}
+                className="relative shrink-0 self-center text-navy"
+                style={{ height: gh, width: gw }}
               >
                 <svg
                   viewBox={glass.viewBox}
@@ -107,38 +113,10 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
                     </g>
                   )}
                 </svg>
-
-                {/* jestler — ağız noktasına (renkli görsel varsa onu, yoksa line-art) */}
-                {garnishes.map((g, i) => {
-                  const img = GARNISH_IMAGES[g];
-                  const offset = (i - (garnishes.length - 1) / 2) * 22;
-                  return (
-                    <span
-                      key={g}
-                      className="pointer-events-none absolute block size-9 text-navy"
-                      style={{
-                        left: `${px(glass.rim.x)}%`,
-                        top: `${py(glass.rim.y)}%`,
-                        transform: `translate(calc(-50% + ${offset}px), -72%)`,
-                      }}
-                    >
-                      {img ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={img}
-                          alt=""
-                          className="size-full object-contain"
-                        />
-                      ) : (
-                        GARNISH_ART[g]
-                      )}
-                    </span>
-                  );
-                })}
               </div>
 
               {/* daktilo etiketleri — her katmanın hizasında */}
-              <div className="relative flex-1" style={{ height: STAGE_H }}>
+              <div className="relative flex-1 self-center" style={{ height: gh }}>
                 {placed.map((l, i) => (
                   <div
                     key={i}
