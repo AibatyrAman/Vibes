@@ -4,6 +4,7 @@ import { useId, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import type { Product } from "@/data/menu";
 import { pointsToCavity, pointsToClip } from "@/lib/glass-cavity";
+import { mediaUrl } from "@/lib/base-path";
 import { GLASSES } from "./glasses";
 import { useGlassCavity } from "./GlassCavityContext";
 
@@ -159,7 +160,7 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/api/media/${product.photo}`}
+                src={mediaUrl(product.photo!)}
                 alt={`${product.name} fotoğraf`}
                 className="max-h-[240px] w-auto object-contain drop-shadow-[6px_6px_0_rgba(17,24,39,0.25)]"
               />

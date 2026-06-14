@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { assetUrl } from "@/lib/base-path";
 
 /**
  * "vibes" wordmark from public/vibes-logo.svg, used as a CSS mask so it takes
@@ -6,12 +7,13 @@ import type { CSSProperties } from "react";
  * Set the height via className; width follows the wordmark's aspect ratio.
  */
 export default function Logo({ className = "" }: { className?: string }) {
+  const logo = `url(${assetUrl("/vibes-logo.svg")})`;
   const mask: CSSProperties = {
     display: "inline-block",
     aspectRatio: "1330 / 322",
     backgroundColor: "currentColor",
-    WebkitMaskImage: "url(/vibes-logo.svg)",
-    maskImage: "url(/vibes-logo.svg)",
+    WebkitMaskImage: logo,
+    maskImage: logo,
     WebkitMaskRepeat: "no-repeat",
     maskRepeat: "no-repeat",
     WebkitMaskPosition: "center",

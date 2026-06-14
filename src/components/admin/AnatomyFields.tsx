@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { DrinkLayer, GlassType } from "@/data/menu";
 import { GLASS_LABELS, GLASSES } from "@/components/anatomy/glasses";
+import { mediaUrl } from "@/lib/base-path";
 
 const inp =
   "w-full border-2 border-ink bg-white px-3 py-2 font-mono text-sm outline-none focus:shadow-pop-sm";
@@ -162,7 +163,7 @@ export default function AnatomyFields({
           <div className="mb-2 flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`/api/media/${photo}`}
+              src={mediaUrl(photo)}
               alt="Mevcut fotoğraf"
               className="size-16 border-2 border-ink object-contain"
             />

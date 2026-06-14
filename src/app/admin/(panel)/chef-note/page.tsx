@@ -3,12 +3,12 @@ import { updateChefNoteAction } from "@/app/admin/actions";
 
 export const dynamic = "force-dynamic";
 
-export default function SettingsPage() {
+export default function ChefNotePage() {
   const note = getSetting("chef_note", "");
   return (
     <div className="mx-auto max-w-2xl">
       <h1 className="mb-6 font-display text-4xl uppercase leading-none text-ink">
-        Ayarlar
+        Şefin Önerisi
       </h1>
 
       <form
@@ -20,7 +20,7 @@ export default function SettingsPage() {
             Bugünün Şef Önerisi
           </h2>
           <p className="mt-1 font-mono text-xs text-ink/50">
-            Sağ alttaki peçete ikonuna tıklanınca açılan not.
+            Menüde sağ alttaki peçete ikonuna tıklanınca açılan not.
           </p>
         </div>
         <textarea

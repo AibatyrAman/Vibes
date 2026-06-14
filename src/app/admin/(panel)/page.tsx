@@ -18,12 +18,20 @@ export default function AdminProductsPage() {
             değişir
           </p>
         </div>
-        <Link
-          href="/admin/products/new"
-          className="shrink-0 border-2 border-ink bg-navy px-4 py-2.5 font-display text-lg uppercase tracking-wide text-paper shadow-pop transition-transform hover:-translate-y-0.5"
-        >
-          + Yeni ürün
-        </Link>
+        <div className="flex shrink-0 flex-wrap gap-3">
+          <Link
+            href="/admin/chef-note"
+            className="border-2 border-ink bg-paper px-4 py-2.5 font-display text-lg uppercase tracking-wide text-ink shadow-pop-sm transition-transform hover:-translate-y-0.5"
+          >
+            Şef önerisi
+          </Link>
+          <Link
+            href="/admin/products/new"
+            className="border-2 border-ink bg-navy px-4 py-2.5 font-display text-lg uppercase tracking-wide text-paper shadow-pop transition-transform hover:-translate-y-0.5"
+          >
+            + Yeni ürün
+          </Link>
+        </div>
       </div>
       <ProductTable products={products} />
     </div>

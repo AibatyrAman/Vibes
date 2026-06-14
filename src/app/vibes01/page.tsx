@@ -23,7 +23,7 @@ export default function Vibes01() {
 
         {/* menü linki */}
         <Link
-          href="/"
+          href="/menu"
           className="mt-11 inline-block border-2 border-brand-blue bg-brand-blue px-8 py-3 font-cond text-base font-semibold uppercase tracking-[0.2em] text-brand-paper transition-transform hover:-translate-y-0.5"
         >
           Menü

@@ -333,7 +333,7 @@ export async function updateChefNoteAction(formData: FormData): Promise<void> {
   const note = String(formData.get("chefNote") ?? "").trim();
   repo.setSetting("chef_note", note);
   revalidateAll();
-  redirect("/admin/settings");
+  redirect("/admin/chef-note");
 }
 
 // ---------- kampanyalar ----------
