@@ -74,6 +74,61 @@ function migrate(db: Database.Database) {
       quantity    INTEGER NOT NULL DEFAULT 1
     );
     CREATE INDEX IF NOT EXISTS idx_camp_items ON campaign_items(campaign_id);
+
+    -- Müşteri hesapları (kullanıcı adı + telefon, SMS yok) — çark + bira defteri ortak kimlik.
+    CREATE TABLE IF NOT EXISTS customers (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      username        TEXT UNIQUE NOT NULL,
+      phone           TEXT UNIQUE NOT NULL,
+      stamps          INTEGER NOT NULL DEFAULT 0,
+      free_available  INTEGER NOT NULL DEFAULT 0,
+      created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    -- Çarkı Felek
+    CREATE TABLE IF NOT EXISTS wheel_slots (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id  INTEGER REFERENCES products(id) ON DELETE SET NULL,
+      label       TEXT NOT NULL,
+      reward_note TEXT,
+      color       TEXT NOT NULL DEFAULT '#db1010',
+      weight      INTEGER NOT NULL DEFAULT 1,
+      position    INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS wheel_spins (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id  INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      slot_id      INTEGER REFERENCES wheel_slots(id) ON DELETE SET NULL,
+      product_id   INTEGER REFERENCES products(id) ON DELETE SET NULL,
+      label        TEXT NOT NULL,
+      prize_code   TEXT UNIQUE,
+      won          INTEGER NOT NULL DEFAULT 0,
+      spun_on      TEXT NOT NULL,
+      redeemed     INTEGER NOT NULL DEFAULT 0,
+      redeemed_at  TEXT,
+      created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS ux_spin_day ON wheel_spins(customer_id, spun_on);
+    CREATE INDEX IF NOT EXISTS idx_spin_code ON wheel_spins(prize_code);
+
+    -- Bira Defteri (6+1) geçmişi
+    CREATE TABLE IF NOT EXISTS beer_log (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      customer_id INTEGER NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
+      action      TEXT NOT NULL,
+      created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    -- Anasayfa galerileri (admin yüklemeli)
+    CREATE TABLE IF NOT EXISTS gallery_photos (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      gallery    TEXT NOT NULL,
+      photo      TEXT NOT NULL,
+      caption    TEXT,
+      position   INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_gallery ON gallery_photos(gallery);
   `);
   // varsayılan ayarlar (mevcut DB'lerde de oluşur)
   db.prepare(
@@ -81,6 +136,9 @@ function migrate(db: Database.Database) {
   ).run("Tuzlu karamel cortado & portakallı kek.");
   db.prepare(
     "INSERT OR IGNORE INTO settings (key, value) VALUES ('campaigns_enabled', '1')",
+  ).run();
+  db.prepare(
+    "INSERT OR IGNORE INTO settings (key, value) VALUES ('wheel_enabled', '1')",
   ).run();
 
   // İçecek Anatomisi — mevcut DB'lere kolonları idempotent ekle.

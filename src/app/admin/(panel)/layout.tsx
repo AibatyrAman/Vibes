@@ -44,7 +44,25 @@ export default async function PanelLayout({
               Bardaklar
             </Link>
             <Link
-              href="/menu"
+              href="/admin/cark"
+              className="transition-colors hover:text-red"
+            >
+              Çark
+            </Link>
+            <Link
+              href="/admin/bira-defteri"
+              className="transition-colors hover:text-red"
+            >
+              Bira Defteri
+            </Link>
+            <Link
+              href="/admin/galeri"
+              className="transition-colors hover:text-red"
+            >
+              Galeri
+            </Link>
+            <Link
+              href="/"
               target="_blank"
               className="text-paper/60 transition-colors hover:text-red"
             >

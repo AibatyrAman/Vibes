@@ -3,13 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import {
-  checkPassword,
-  createToken,
-  COOKIE_NAME,
-  cookieOptions,
-  verifyToken,
-} from "@/lib/auth";
+import { checkPassword, createToken, COOKIE_NAME, cookieOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/require-admin";
 import * as repo from "@/lib/menu-repo";
 import type { ProductInput } from "@/lib/menu-repo";
 import { deleteUpload, saveUpload } from "@/lib/uploads";
@@ -32,14 +27,8 @@ const GLASS_TYPES: GlassType[] = [
 
 function revalidateAll() {
   revalidatePath("/");
+  revalidatePath("/menu");
   revalidatePath("/admin");
-}
-
-/** Mutasyon action'larını korur — oturum yoksa login'e atar. */
-async function requireAdmin() {
-  const store = await cookies();
-  if (!(await verifyToken(store.get(COOKIE_NAME)?.value)))
-    redirect("/admin/login");
 }
 
 function slugify(s: string): string {
