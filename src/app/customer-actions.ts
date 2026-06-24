@@ -8,8 +8,9 @@ import {
   customerCookieOptions,
   getCustomerId,
 } from "@/lib/customer-auth";
-import { registerOrLogin } from "@/lib/customer-repo";
+import { getCustomer, registerOrLogin } from "@/lib/customer-repo";
 import { spin, type SpinResult } from "@/lib/wheel-repo";
+import { consumeUnlock, isSpinUnlocked, isTestCustomer } from "@/lib/spin-gate";
 
 export type CustomerFormState = { error?: string };
 
@@ -47,12 +48,22 @@ export type SpinActionResult =
   | { ok: true; result: SpinResult }
   | { ok: false; error: string };
 
-/** Müşteri çarkı çevirir — sonuç sunucuda seçilir, günde 1 ile sınırlıdır. */
+/** Müşteri çarkı çevirir — sonuç sunucuda seçilir. Çevirme hakkı, barmenin
+ *  okuttuğu alkol-kapısı QR'ı (spin-gate.ts) tüketilerek kazanılmıştır;
+ *  test hesabı hariç her çevirmede unlock çerezi düşürülür. */
 export async function spinAction(): Promise<SpinActionResult> {
   const customerId = await getCustomerId();
   if (!customerId) return { ok: false, error: "Önce katılmalısın." };
+  const customer = getCustomer(customerId);
+  if (!customer) return { ok: false, error: "Hesap bulunamadı." };
+  if (!(await isSpinUnlocked(customer)))
+    return {
+      ok: false,
+      error: "Önce bir içki sipariş et ve barmene söyle 🍻",
+    };
   try {
     const result = spin(customerId);
+    if (!isTestCustomer(customer)) await consumeUnlock();
     revalidatePath("/cark");
     revalidatePath("/admin/cark");
     return { ok: true, result };

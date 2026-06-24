@@ -11,6 +11,7 @@ import ConfirmDelete from "@/components/admin/ConfirmDelete";
 import WheelToggle from "@/components/admin/WheelToggle";
 import RedeemPrizeForm from "@/components/admin/RedeemPrizeForm";
 import MoveButtons from "@/components/admin/MoveButtons";
+import SpinGateQr from "@/components/admin/SpinGateQr";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ function SlotFields({
     rewardNote: string | null;
     color: string;
     weight: number;
+    angle: number;
   };
   products: ReturnType<typeof listProductsFlat>;
 }) {
@@ -91,7 +93,23 @@ function SlotFields({
             className={inp}
           />
         </div>
+        <div className="flex-1">
+          <label className={lbl}>Görsel açı (dar/geniş dilim)</label>
+          <input
+            name="angle"
+            type="number"
+            min={0.1}
+            step={0.1}
+            defaultValue={slot?.angle ?? 1}
+            className={inp}
+          />
+        </div>
       </div>
+      <p className="-mt-1 font-mono text-[10px] text-ink/40">
+        Ağırlık şansı belirler, görsel açı sadece çarktaki dilim genişliğini
+        değiştirir — şanstan bağımsızdır (ör. ağırlığı düşük ama dilimi geniş
+        bir slot yapılabilir).
+      </p>
     </div>
   );
 }
@@ -109,11 +127,13 @@ export default function WheelAdminPage() {
           Çarkı Felek
         </h1>
         <p className="mt-2 font-mono text-xs uppercase tracking-widest text-ink/50">
-          {slots.length} slot · müşteri günde 1 kez çevirebilir
+          {slots.length} slot · sadece alkol alan müşteri çevirebilir
         </p>
       </div>
 
       <WheelToggle enabled={enabled} action={setWheelEnabledAction} />
+
+      <SpinGateQr />
 
       {/* yeni slot */}
       <form

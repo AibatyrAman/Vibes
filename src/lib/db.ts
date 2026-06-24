@@ -108,8 +108,8 @@ function migrate(db: Database.Database) {
       redeemed_at  TEXT,
       created_at   TEXT NOT NULL DEFAULT (datetime('now'))
     );
-    CREATE UNIQUE INDEX IF NOT EXISTS ux_spin_day ON wheel_spins(customer_id, spun_on);
     CREATE INDEX IF NOT EXISTS idx_spin_code ON wheel_spins(prize_code);
+    CREATE INDEX IF NOT EXISTS idx_spin_customer ON wheel_spins(customer_id);
 
     -- Bira Defteri (6+1) geçmişi
     CREATE TABLE IF NOT EXISTS beer_log (
@@ -145,6 +145,22 @@ function migrate(db: Database.Database) {
   addColumnIfMissing(db, "products", "glass_type", "TEXT");
   addColumnIfMissing(db, "products", "layers", "TEXT");
   addColumnIfMissing(db, "products", "photo", "TEXT");
+
+  // Çark: görsel açı/genişlik (ağırlıktan bağımsız) — mevcut DB'lere idempotent ekle.
+  addColumnIfMissing(db, "wheel_slots", "angle", "REAL NOT NULL DEFAULT 1");
+
+  // Çark artık "günde 1" değil, QR/alkol kapısıyla sınırlı — eski günlük tekillik
+  // kısıtını kaldır (mevcut DB'lerde de). Aynı gün birden çok geçerli QR ile
+  // birden çok çevirme yapılabilmesi gerekiyor.
+  db.exec("DROP INDEX IF EXISTS ux_spin_day");
+
+  // Çark QR/alkol kapısı testi için sabit numara + önceden açılmış hesap.
+  db.prepare(
+    "INSERT OR IGNORE INTO settings (key, value) VALUES ('spin_test_phone', '05372877615')",
+  ).run();
+  db.prepare(
+    "INSERT OR IGNORE INTO customers (username, phone) VALUES ('Aibatyr', '05372877615')",
+  ).run();
 }
 
 /** Kolon yoksa ekler — `ALTER TABLE ... ADD COLUMN` idempotent migrasyon. */

@@ -15,6 +15,8 @@ export type WheelSlot = {
   rewardNote: string | null;
   color: string;
   weight: number;
+  /** Görsel dilim genişliği — kazanma şansını etkilemez, sadece çarktaki boyutu. */
+  angle: number;
   position: number;
 };
 
@@ -25,6 +27,7 @@ type SlotRow = {
   reward_note: string | null;
   color: string;
   weight: number;
+  angle: number;
   position: number;
   product_name?: string | null;
 };
@@ -38,6 +41,7 @@ function toSlot(r: SlotRow): WheelSlot {
     rewardNote: r.reward_note,
     color: r.color,
     weight: r.weight,
+    angle: r.angle,
     position: r.position,
   };
 }
@@ -59,6 +63,7 @@ export type WheelSlotInput = {
   rewardNote: string | null;
   color: string;
   weight: number;
+  angle: number;
 };
 
 export function createWheelSlot(input: WheelSlotInput): number {
@@ -69,8 +74,8 @@ export function createWheelSlot(input: WheelSlotInput): number {
     }).p ?? 0;
   const res = db
     .prepare(
-      `INSERT INTO wheel_slots (product_id, label, reward_note, color, weight, position)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO wheel_slots (product_id, label, reward_note, color, weight, angle, position)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       input.productId,
@@ -78,6 +83,7 @@ export function createWheelSlot(input: WheelSlotInput): number {
       input.rewardNote,
       input.color,
       Math.max(1, input.weight),
+      Math.max(0.1, input.angle),
       pos,
     );
   return Number(res.lastInsertRowid);
@@ -86,7 +92,7 @@ export function createWheelSlot(input: WheelSlotInput): number {
 export function updateWheelSlot(id: number, input: WheelSlotInput): void {
   getDb()
     .prepare(
-      `UPDATE wheel_slots SET product_id=?, label=?, reward_note=?, color=?, weight=?
+      `UPDATE wheel_slots SET product_id=?, label=?, reward_note=?, color=?, weight=?, angle=?
        WHERE id=?`,
     )
     .run(
@@ -95,6 +101,7 @@ export function updateWheelSlot(id: number, input: WheelSlotInput): void {
       input.rewardNote,
       input.color,
       Math.max(1, input.weight),
+      Math.max(0.1, input.angle),
       id,
     );
 }
@@ -126,46 +133,43 @@ export type SpinResult = {
   productName: string | null;
   won: boolean;
   prizeCode: string | null;
-  alreadySpunToday: boolean;
 };
 
-/** Bugünün spin'i varsa onu döndürür (tekrar çevirtmemek için). */
-export function getTodaySpin(customerId: number): SpinResult | null {
-  const slots = getWheelSlots();
-  const row = getDb()
+export type PendingPrize = {
+  id: number;
+  label: string;
+  prizeCode: string;
+  createdAt: string;
+};
+
+/** Müşterinin henüz garsona göstermediği (kullanılmamış) kazanım kodları. */
+export function getPendingPrizes(customerId: number): PendingPrize[] {
+  const rows = getDb()
     .prepare(
-      "SELECT * FROM wheel_spins WHERE customer_id=? AND spun_on=?",
+      `SELECT id, label, prize_code, created_at FROM wheel_spins
+        WHERE customer_id=? AND won=1 AND redeemed=0
+        ORDER BY created_at DESC`,
     )
-    .get(customerId, todayIstanbul()) as
-    | {
-        slot_id: number | null;
-        label: string;
-        product_id: number | null;
-        won: number;
-        prize_code: string | null;
-      }
-    | undefined;
-  if (!row) return null;
-  const slotIndex = slots.findIndex((s) => s.id === row.slot_id);
-  return {
-    slotId: row.slot_id,
-    slotIndex: slotIndex >= 0 ? slotIndex : 0,
-    label: row.label,
-    productName: slots.find((s) => s.id === row.slot_id)?.productName ?? null,
-    won: !!row.won,
-    prizeCode: row.prize_code,
-    alreadySpunToday: true,
-  };
+    .all(customerId) as {
+    id: number;
+    label: string;
+    prize_code: string;
+    created_at: string;
+  }[];
+  return rows.map((r) => ({
+    id: r.id,
+    label: r.label,
+    prizeCode: r.prize_code,
+    createdAt: r.created_at,
+  }));
 }
 
 /**
- * Çevirir: sunucu tarafı ağırlıklı rastgele seçim yapar, günde-1 kuralını
- * UNIQUE(customer_id, spun_on) ile garantiler (çakışırsa bugünün sonucu döner).
+ * Çevirir: sunucu tarafı ağırlıklı rastgele seçim yapar. Çevirme hakkı
+ * QR/alkol kapısı (spin-gate.ts) tarafından kontrol edilir — burada günlük
+ * bir sınır YOKTUR, her çağrı bir spin kaydı oluşturur.
  */
 export function spin(customerId: number): SpinResult {
-  const existing = getTodaySpin(customerId);
-  if (existing) return existing;
-
   const slots = getWheelSlots();
   if (slots.length === 0)
     throw new Error("Çark boş — admin panelden slot ekleyin.");
@@ -185,19 +189,21 @@ export function spin(customerId: number): SpinResult {
 
   const won = chosen.productId != null;
   const prizeCode = won ? crypto.randomBytes(4).toString("hex").toUpperCase() : null;
-  const today = todayIstanbul();
 
-  try {
-    getDb()
-      .prepare(
-        `INSERT INTO wheel_spins (customer_id, slot_id, product_id, label, prize_code, won, spun_on)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(customerId, chosen.id, chosen.productId, chosen.label, prizeCode, won ? 1 : 0, today);
-  } catch {
-    // UNIQUE(customer_id, spun_on) çakışması — yarış durumu, bugünün sonucunu döndür.
-    return getTodaySpin(customerId)!;
-  }
+  getDb()
+    .prepare(
+      `INSERT INTO wheel_spins (customer_id, slot_id, product_id, label, prize_code, won, spun_on)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      customerId,
+      chosen.id,
+      chosen.productId,
+      chosen.label,
+      prizeCode,
+      won ? 1 : 0,
+      todayIstanbul(),
+    );
 
   return {
     slotId: chosen.id,
@@ -206,7 +212,6 @@ export function spin(customerId: number): SpinResult {
     productName: chosen.productName,
     won,
     prizeCode,
-    alreadySpunToday: false,
   };
 }
 

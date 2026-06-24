@@ -7,29 +7,36 @@ import { spinAction } from "@/app/customer-actions";
 const SPIN_MS = 3800;
 const EXTRA_TURNS = 5;
 
+/** Her slotun [başlangıç, bitiş, orta] açısını angle ağırlığına göre hesaplar. */
+function useSlices(slots: WheelSlot[]) {
+  return useMemo(() => {
+    const total = slots.reduce((s, x) => s + x.angle, 0) || 1;
+    return slots.map((_, i) => {
+      const before = slots.slice(0, i).reduce((s, x) => s + x.angle, 0);
+      const from = (before / total) * 360;
+      const to = ((before + slots[i].angle) / total) * 360;
+      return { from, to, mid: (from + to) / 2 };
+    });
+  }, [slots]);
+}
+
 export default function Wheel({
   slots,
-  initialSpin,
+  pendingPrizes,
 }: {
   slots: WheelSlot[];
-  initialSpin: SpinResult | null;
+  pendingPrizes: { id: number; label: string; prizeCode: string }[];
 }) {
-  const anglePerSlot = 360 / slots.length;
-  const [rotation, setRotation] = useState(() =>
-    initialSpin ? -((initialSpin.slotIndex + 0.5) * anglePerSlot) : 0,
-  );
+  const slices = useSlices(slots);
+  const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState<SpinResult | null>(initialSpin);
+  const [result, setResult] = useState<SpinResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const gradient = useMemo(() => {
-    const stops = slots.map((s, i) => {
-      const from = i * anglePerSlot;
-      const to = (i + 1) * anglePerSlot;
-      return `${s.color} ${from}deg ${to}deg`;
-    });
+    const stops = slots.map((s, i) => `${s.color} ${slices[i].from}deg ${slices[i].to}deg`);
     return `conic-gradient(from 0deg, ${stops.join(", ")})`;
-  }, [slots, anglePerSlot]);
+  }, [slots, slices]);
 
   async function handleSpin() {
     if (spinning || result) return;
@@ -42,7 +49,7 @@ export default function Wheel({
       return;
     }
     const r = res.result;
-    const thetaMid = (r.slotIndex + 0.5) * anglePerSlot;
+    const thetaMid = slices[r.slotIndex]?.mid ?? 0;
     const mod = ((rotation % 360) + 360) % 360;
     const baseAdd = (((-thetaMid - mod) % 360) + 360) % 360;
     setRotation((prev) => prev + EXTRA_TURNS * 360 + baseAdd);
@@ -77,23 +84,17 @@ export default function Wheel({
               : "none",
           }}
         >
-          {slots.map((s, i) => {
-            const mid = (i + 0.5) * anglePerSlot;
-            return (
-              <div
-                key={s.id}
-                className="absolute inset-0 flex justify-center"
-                style={{ transform: `rotate(${mid}deg)` }}
-              >
-                <span
-                  className="mt-3 max-w-[80px] text-center font-mono text-[10px] font-bold uppercase leading-tight text-paper"
-                  style={{ transform: `rotate(0deg)` }}
-                >
-                  {s.label}
-                </span>
-              </div>
-            );
-          })}
+          {slots.map((s, i) => (
+            <div
+              key={s.id}
+              className="absolute inset-0 flex justify-center"
+              style={{ transform: `rotate(${slices[i].mid}deg)` }}
+            >
+              <span className="mt-3 max-w-[80px] text-center font-mono text-[10px] font-bold uppercase leading-tight text-paper">
+                {s.label}
+              </span>
+            </div>
+          ))}
         </div>
         {/* merkez göbek */}
         <div className="absolute left-1/2 top-1/2 size-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-ink bg-paper shadow-pop-sm" />
@@ -136,9 +137,25 @@ export default function Wheel({
               {result.label || "Bir dahaki sefere!"}
             </p>
           )}
-          <p className="mt-4 font-mono text-[11px] text-ink/40">
-            Yarın tekrar çevirebilirsin.
+        </div>
+      )}
+
+      {pendingPrizes.length > 0 && (
+        <div className="grid w-full max-w-sm gap-2">
+          <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50">
+            Henüz kullanmadığın kodların
           </p>
+          {pendingPrizes.map((p) => (
+            <div
+              key={p.id}
+              className="flex items-center justify-between gap-3 border-2 border-ink bg-white px-3 py-2"
+            >
+              <span className="font-hand text-lg text-ink">{p.label}</span>
+              <span className="border-2 border-ink bg-red px-2 py-1 font-mono text-sm font-bold tracking-widest text-paper">
+                {p.prizeCode}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>
