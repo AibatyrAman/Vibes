@@ -25,11 +25,10 @@ export default function SpinGateQr() {
 
   return (
     <div className="flex flex-wrap items-center gap-5 border-2 border-ink bg-paper p-5 shadow-pop">
-      <div
-        className="grid size-[160px] shrink-0 place-items-center border-2 border-ink bg-white p-2"
-        dangerouslySetInnerHTML={svg ? { __html: svg } : undefined}
-      >
-        {!svg && (
+      <div className="grid size-[160px] shrink-0 place-items-center border-2 border-ink bg-white p-2">
+        {svg ? (
+          <div dangerouslySetInnerHTML={{ __html: svg }} />
+        ) : (
           <span className="font-mono text-xs text-ink/40">Yükleniyor…</span>
         )}
       </div>
