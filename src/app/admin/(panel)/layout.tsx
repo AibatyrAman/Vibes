@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import Logo from "@/components/Logo";
+import AdminNav from "@/components/admin/AdminNav";
 import { COOKIE_NAME, verifyToken } from "@/lib/auth";
 import { logoutAction } from "../actions";
 
@@ -18,59 +18,12 @@ export default async function PanelLayout({
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b-4 border-red bg-ink px-4 py-3 text-paper">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b-4 border-red bg-ink px-4 py-3 text-paper">
         <div className="flex items-center gap-5">
           <Logo className="h-6 text-red" />
-          <nav className="flex gap-4 font-mono text-xs font-bold uppercase tracking-widest">
-            <Link href="/admin" className="transition-colors hover:text-red">
-              Ürünler
-            </Link>
-            <Link
-              href="/admin/categories"
-              className="transition-colors hover:text-red"
-            >
-              Kategoriler
-            </Link>
-            <Link
-              href="/admin/campaigns"
-              className="transition-colors hover:text-red"
-            >
-              Kampanyalar
-            </Link>
-            <Link
-              href="/admin/glasses"
-              className="transition-colors hover:text-red"
-            >
-              Bardaklar
-            </Link>
-            <Link
-              href="/admin/cark"
-              className="transition-colors hover:text-red"
-            >
-              Çark
-            </Link>
-            <Link
-              href="/admin/bira-defteri"
-              className="transition-colors hover:text-red"
-            >
-              Bira Defteri
-            </Link>
-            <Link
-              href="/admin/galeri"
-              className="transition-colors hover:text-red"
-            >
-              Galeri
-            </Link>
-            <Link
-              href="/"
-              target="_blank"
-              className="text-paper/60 transition-colors hover:text-red"
-            >
-              Site ↗
-            </Link>
-          </nav>
+          <AdminNav logoutAction={logoutAction} />
         </div>
-        <form action={logoutAction}>
+        <form action={logoutAction} className="hidden md:block">
           <button className="font-mono text-xs font-bold uppercase tracking-widest text-paper/70 transition-colors hover:text-red">
             Çıkış
           </button>

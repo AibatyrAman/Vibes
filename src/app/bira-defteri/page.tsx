@@ -6,6 +6,7 @@ import CustomerGate from "@/components/CustomerGate";
 import StampCard from "@/components/loyalty/StampCard";
 import { getCustomerId } from "@/lib/customer-auth";
 import { getCustomerCard } from "@/lib/loyalty-repo";
+import { STAMPS_GOAL } from "@/lib/loyalty-constants";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function BiraDefteriPage() {
               Bira Defteri
             </h1>
             <p className="mt-2 font-mono text-xs uppercase tracking-[0.2em] text-ink/60">
-              6 bira al, 7.si bedava
+              {STAMPS_GOAL} bira al, {STAMPS_GOAL + 1}.si bedava
             </p>
           </div>
 

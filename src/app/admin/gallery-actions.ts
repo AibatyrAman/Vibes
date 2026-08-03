@@ -13,17 +13,27 @@ function revalidateGallery() {
   revalidatePath("/admin/galeri");
 }
 
-export async function addGalleryPhotoAction(formData: FormData): Promise<void> {
+export type GalleryUploadState = { error?: string };
+
+export async function addGalleryPhotoAction(
+  _prev: GalleryUploadState | undefined,
+  formData: FormData,
+): Promise<GalleryUploadState> {
   await requireAdmin();
   const gallery = String(formData.get("gallery") ?? "");
-  if (!GALLERIES.includes(gallery as GalleryName)) return;
+  if (!GALLERIES.includes(gallery as GalleryName)) {
+    return { error: "Geçersiz galeri." };
+  }
   const file = formData.get("photo");
-  if (!(file instanceof File) || file.size === 0) return;
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Fotoğraf seçilmedi." };
+  }
   const saved = await saveUpload(file);
-  if (!saved) return;
+  if (!saved.ok) return { error: saved.error };
   const caption = String(formData.get("caption") ?? "").trim() || null;
-  repo.addGalleryPhoto(gallery as GalleryName, saved, caption);
+  repo.addGalleryPhoto(gallery as GalleryName, saved.name, caption);
   revalidateGallery();
+  return {};
 }
 
 export async function deleteGalleryPhotoAction(id: number): Promise<void> {

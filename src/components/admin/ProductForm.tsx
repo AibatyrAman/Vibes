@@ -1,6 +1,10 @@
+"use client";
+
+import { useActionState } from "react";
 import Link from "next/link";
 import type { Allergen } from "@/data/menu";
 import type { AdminCategory, AdminProduct } from "@/lib/menu-repo";
+import type { ProductFormState } from "@/app/admin/actions";
 import AnatomyFields from "./AnatomyFields";
 
 const ALLERGENS: Allergen[] = ["süt", "gluten", "fındık", "yumurta", "soya"];
@@ -14,16 +18,20 @@ export default function ProductForm({
   product,
   categories,
 }: {
-  action: (formData: FormData) => void | Promise<void>;
+  action: (
+    prevState: ProductFormState | undefined,
+    formData: FormData,
+  ) => Promise<ProductFormState>;
   product?: AdminProduct;
   categories: AdminCategory[];
 }) {
+  const [state, formAction, pending] = useActionState(action, undefined);
   const variantsText =
     product?.variants?.map((v) => `${v.label} | ${v.price}`).join("\n") ?? "";
 
   return (
     <form
-      action={action}
+      action={formAction}
       encType="multipart/form-data"
       className="grid gap-5 border-2 border-ink bg-paper p-5 shadow-pop sm:p-6"
     >
@@ -199,9 +207,18 @@ export default function ProductForm({
         photo={product?.photo ?? null}
       />
 
+      {state?.error && (
+        <p className="border-2 border-red bg-red/10 px-3 py-2 font-mono text-xs font-bold text-red">
+          {state.error}
+        </p>
+      )}
+
       <div className="flex flex-wrap gap-3 border-t-2 border-ink/10 pt-5">
-        <button className="border-2 border-ink bg-navy px-6 py-3 font-display text-xl uppercase tracking-wide text-paper shadow-pop transition-transform hover:-translate-y-0.5">
-          Kaydet
+        <button
+          disabled={pending}
+          className="border-2 border-ink bg-navy px-6 py-3 font-display text-xl uppercase tracking-wide text-paper shadow-pop transition-transform hover:-translate-y-0.5 disabled:opacity-60"
+        >
+          {pending ? "Kaydediliyor…" : "Kaydet"}
         </button>
         <Link
           href="/admin"

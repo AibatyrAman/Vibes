@@ -22,6 +22,7 @@ export default function LoginPage() {
         <input
           name="password"
           type="password"
+          autoComplete="current-password"
           autoFocus
           required
           className="mt-1 w-full border-2 border-ink bg-white px-3 py-2.5 font-mono outline-none focus:shadow-pop-sm"

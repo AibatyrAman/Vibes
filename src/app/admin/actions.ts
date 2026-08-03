@@ -29,6 +29,8 @@ function revalidateAll() {
   revalidatePath("/");
   revalidatePath("/menu");
   revalidatePath("/admin");
+  revalidatePath("/cark");
+  revalidatePath("/bira-defteri");
 }
 
 function slugify(s: string): string {
@@ -44,6 +46,16 @@ function slugify(s: string): string {
     .slice(0, 40) || `kategori-${Date.now()}`;
 }
 
+/** `base` zaten kullanılıyorsa `-2`, `-3`... ekleyerek benzersiz hale getirir —
+ *  aynı/benzer başlıklı iki kategori aynı slug'a düşüp UNIQUE ihlaliyle
+ *  çökmesin diye (categories.slug TEXT UNIQUE NOT NULL). */
+function uniqueSlug(base: string, taken: Set<string>): string {
+  if (!taken.has(base)) return base;
+  let i = 2;
+  while (taken.has(`${base}-${i}`)) i++;
+  return `${base}-${i}`;
+}
+
 // ---------- auth ----------
 
 export async function loginAction(
@@ -51,7 +63,7 @@ export async function loginAction(
   formData: FormData,
 ): Promise<{ error?: string }> {
   const pw = String(formData.get("password") ?? "");
-  if (!checkPassword(pw)) return { error: "Şifre yanlış." };
+  if (!(await checkPassword(pw))) return { error: "Şifre yanlış." };
   const c = await cookies();
   c.set(COOKIE_NAME, await createToken(), cookieOptions);
   redirect("/admin");
@@ -64,6 +76,10 @@ export async function logoutAction(): Promise<void> {
 }
 
 // ---------- form parsing ----------
+
+/** parseProductForm içinde saveUpload başarısız olursa fırlatılır — çağıran
+ *  action bunu yakalayıp useActionState'e kullanıcı dostu hata döndürür. */
+class UploadValidationError extends Error {}
 
 async function parseProductForm(fd: FormData): Promise<ProductInput> {
   const str = (k: string) => {
@@ -120,10 +136,9 @@ async function parseProductForm(fd: FormData): Promise<ProductInput> {
   const file = fd.get("photo");
   if (file instanceof File && file.size > 0) {
     const saved = await saveUpload(file);
-    if (saved) {
-      await deleteUpload(existingPhoto);
-      photo = saved;
-    }
+    if (!saved.ok) throw new UploadValidationError(saved.error);
+    await deleteUpload(existingPhoto);
+    photo = saved.name;
   } else if (removePhoto) {
     await deleteUpload(existingPhoto);
     photo = null;
@@ -169,9 +184,20 @@ async function parseProductForm(fd: FormData): Promise<ProductInput> {
 
 // ---------- product CRUD ----------
 
-export async function createProductAction(formData: FormData): Promise<void> {
+export type ProductFormState = { error?: string };
+
+export async function createProductAction(
+  _prev: ProductFormState | undefined,
+  formData: FormData,
+): Promise<ProductFormState> {
   await requireAdmin();
-  const input = await parseProductForm(formData);
+  let input: ProductInput;
+  try {
+    input = await parseProductForm(formData);
+  } catch (e) {
+    if (e instanceof UploadValidationError) return { error: e.message };
+    throw e;
+  }
   if (input.name && input.categoryId) repo.createProduct(input);
   revalidateAll();
   redirect("/admin");
@@ -179,10 +205,17 @@ export async function createProductAction(formData: FormData): Promise<void> {
 
 export async function updateProductAction(
   id: number,
+  _prev: ProductFormState | undefined,
   formData: FormData,
-): Promise<void> {
+): Promise<ProductFormState> {
   await requireAdmin();
-  const input = await parseProductForm(formData);
+  let input: ProductInput;
+  try {
+    input = await parseProductForm(formData);
+  } catch (e) {
+    if (e instanceof UploadValidationError) return { error: e.message };
+    throw e;
+  }
   if (input.name && input.categoryId) repo.updateProduct(id, input);
   revalidateAll();
   redirect("/admin");
@@ -233,8 +266,9 @@ export async function createCategoryAction(formData: FormData): Promise<void> {
   await requireAdmin();
   const title = String(formData.get("title") ?? "").trim();
   if (!title) redirect("/admin/categories");
+  const taken = new Set(repo.listCategories().map((c) => c.slug));
   repo.createCategory({
-    slug: slugify(title),
+    slug: uniqueSlug(slugify(title), taken),
     title,
     kicker: String(formData.get("kicker") ?? "").trim(),
     accent: (formData.get("accent") === "red" ? "red" : "navy") as
@@ -256,8 +290,13 @@ export async function updateCategoryAction(
   formData: FormData,
 ): Promise<void> {
   await requireAdmin();
+  const title = String(formData.get("title") ?? "").trim();
+  const taken = new Set(
+    repo.listCategories().filter((c) => c.id !== id).map((c) => c.slug),
+  );
   repo.updateCategory(id, {
-    title: String(formData.get("title") ?? "").trim(),
+    slug: uniqueSlug(slugify(title), taken),
+    title,
     kicker: String(formData.get("kicker") ?? "").trim(),
     accent: (formData.get("accent") === "red" ? "red" : "navy") as
       | "navy"

@@ -377,6 +377,7 @@ export function createCategory(input: {
 export function updateCategory(
   id: number,
   input: {
+    slug: string;
     title: string;
     kicker: string;
     accent: "navy" | "red";
@@ -386,9 +387,10 @@ export function updateCategory(
 ): void {
   getDb()
     .prepare(
-      `UPDATE categories SET title=@title, kicker=@kicker, accent=@accent, info_style=@info_style, note=@note WHERE id=@id`,
+      `UPDATE categories SET slug=@slug, title=@title, kicker=@kicker, accent=@accent, info_style=@info_style, note=@note WHERE id=@id`,
     )
     .run({
+      slug: input.slug,
       title: input.title,
       kicker: input.kicker,
       accent: input.accent,

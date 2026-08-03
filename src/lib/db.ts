@@ -129,6 +129,22 @@ function migrate(db: Database.Database) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
     CREATE INDEX IF NOT EXISTS idx_gallery ON gallery_photos(gallery);
+
+    -- Çark alkol-kapısı QR token'larını tek kullanımlık yapar — bir token
+    -- (fotoğrafı paylaşılsa bile) geçerlilik penceresi içinde yalnızca bir kez
+    -- unlock üretebilir. spin-gate.ts.
+    CREATE TABLE IF NOT EXISTS used_gate_tokens (
+      token   TEXT PRIMARY KEY,
+      used_at INTEGER NOT NULL
+    );
+
+    -- Unlock çerezini sunucu tarafında iptal edilebilir yapar — çerez
+    -- kopyalansa bile bir kez tüketildikten sonra tekrar kullanılamaz.
+    CREATE TABLE IF NOT EXISTS spin_unlocks (
+      jti        TEXT PRIMARY KEY,
+      expires_at INTEGER NOT NULL,
+      used_at    INTEGER
+    );
   `);
   // varsayılan ayarlar (mevcut DB'lerde de oluşur)
   db.prepare(
@@ -154,13 +170,23 @@ function migrate(db: Database.Database) {
   // birden çok çevirme yapılabilmesi gerekiyor.
   db.exec("DROP INDEX IF EXISTS ux_spin_day");
 
-  // Çark QR/alkol kapısı testi için sabit numara + önceden açılmış hesap.
-  db.prepare(
-    "INSERT OR IGNORE INTO settings (key, value) VALUES ('spin_test_phone', '05372877615')",
-  ).run();
-  db.prepare(
-    "INSERT OR IGNORE INTO customers (username, phone) VALUES ('Aibatyr', '05372877615')",
-  ).run();
+  // Çark QR/alkol kapısı testi (ops.) — SPIN_TEST_PHONE env'de tanımlıysa o
+  // numarayla giren müşteri QR'sız sınırsız çevirebilir. Prod'da boş bırak.
+  // NOT: eskiden gerçek bir telefon numarası + hazır hesap repo'ya gömülüydü
+  // (herkese açık, kalıcı bir kapı bypass'ıydı) — o ayar burada temizlenir;
+  // ilişkili customers satırı (gerçek çevirme geçmişi taşıyabileceğinden)
+  // silinmez, sadece "test hesabı" ayrıcalığı kaldırılır.
+  const testPhone = process.env.SPIN_TEST_PHONE?.trim();
+  if (testPhone) {
+    db.prepare(
+      `INSERT INTO settings (key, value) VALUES ('spin_test_phone', ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    ).run(testPhone);
+  } else {
+    db.prepare(
+      "DELETE FROM settings WHERE key = 'spin_test_phone' AND value = '05372877615'",
+    ).run();
+  }
 }
 
 /** Kolon yoksa ekler — `ALTER TABLE ... ADD COLUMN` idempotent migrasyon. */

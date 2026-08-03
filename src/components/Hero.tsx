@@ -1,10 +1,73 @@
 import { ArrowDown, Sparkles } from "lucide-react";
+import Link from "next/link";
 import LiquidCup from "./scrap/LiquidCup";
 import LiquidGlass from "./scrap/LiquidGlass";
 import TapeStrip from "./scrap/TapeStrip";
 import Sticker from "./scrap/Sticker";
 
-export default function Hero() {
+type CtaLink = { href: string; label: string };
+
+type HeroProps = {
+  kicker?: string;
+  /** İki satırlık büyük başlık — sırayla navy/red renk katmanları. */
+  lines?: [string, string];
+  taglineSmall?: string;
+  taglineBig?: string;
+  primaryCta?: CtaLink;
+  secondaryCta?: CtaLink;
+};
+
+/** `.` ile biten satırlarda son noktayı ayrı (ink renkli) span'a ayırır —
+ *  menü sayfasındaki "Kokteyle." flörtü ile aynı davranış. */
+function HeadlineLine({ text }: { text: string }) {
+  if (text.endsWith(".")) {
+    return (
+      <>
+        {text.slice(0, -1)}
+        <span className="text-ink">.</span>
+      </>
+    );
+  }
+  return <>{text}</>;
+}
+
+function CtaButton({
+  cta,
+  className,
+  icon,
+}: {
+  cta: CtaLink;
+  className: string;
+  icon?: React.ReactNode;
+}) {
+  const content = (
+    <>
+      {cta.label}
+      {icon}
+    </>
+  );
+  if (cta.href.startsWith("#")) {
+    return (
+      <a href={cta.href} className={className}>
+        {content}
+      </a>
+    );
+  }
+  return (
+    <Link href={cta.href} className={className}>
+      {content}
+    </Link>
+  );
+}
+
+export default function Hero({
+  kicker = "Gündüz kahve · Akşam aperitivo",
+  lines = ["Kahveden", "Kokteyle."],
+  taglineSmall = "Where every visit feels like the right vibe",
+  taglineBig = "No rush, just vibes",
+  primaryCta = { href: "#menu", label: "Menüye göz at" },
+  secondaryCta = { href: "#menu", label: "Golden Hours" },
+}: HeroProps) {
   return (
     <section
       id="top"
@@ -25,7 +88,7 @@ export default function Hero() {
         <div className="relative z-10">
           <p className="animate-pop-in mb-5 inline-flex items-center gap-2 border-2 border-ink bg-paper px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.18em] shadow-pop-sm sm:text-xs">
             <Sparkles strokeWidth={2.5} className="size-4 text-red" />
-            Gündüz kahve · Akşam aperitivo
+            {kicker}
           </p>
 
           <h1 className="font-display uppercase leading-[0.82]">
@@ -33,13 +96,13 @@ export default function Hero() {
               className="animate-pop-in block text-[clamp(3.2rem,13vw,8.5rem)] text-navy text-pop-red [rotate:-2deg]"
               style={{ animationDelay: "0.06s" }}
             >
-              Kahveden
+              <HeadlineLine text={lines[0]} />
             </span>
             <span
               className="animate-pop-in block text-[clamp(3.2rem,13vw,8.5rem)] text-red text-pop-navy [rotate:1deg]"
               style={{ animationDelay: "0.13s" }}
             >
-              Kokteyle<span className="text-ink">.</span>
+              <HeadlineLine text={lines[1]} />
             </span>
           </h1>
 
@@ -49,10 +112,10 @@ export default function Hero() {
             style={{ animationDelay: "0.22s" }}
           >
             <p className="font-mono text-sm font-bold uppercase tracking-[0.12em] text-navy sm:text-base">
-              Where every visit feels like the right vibe
+              {taglineSmall}
             </p>
             <p className="mt-2 font-display text-3xl uppercase leading-[0.95] text-red sm:text-4xl">
-              No rush, just vibes
+              {taglineBig}
             </p>
           </div>
 
@@ -60,22 +123,20 @@ export default function Hero() {
             className="animate-pop-in mt-8 flex flex-wrap gap-4"
             style={{ animationDelay: "0.3s" }}
           >
-            <a
-              href="#menu"
+            <CtaButton
+              cta={primaryCta}
               className="group inline-flex items-center gap-2 border-2 border-ink bg-navy px-6 py-3 font-display text-xl uppercase tracking-wide text-paper shadow-pop transition-all hover:-translate-y-1 hover:shadow-pop-lg active:translate-y-0 active:shadow-pop-sm"
-            >
-              Menüye göz at
-              <ArrowDown
-                strokeWidth={2.5}
-                className="size-5 transition-transform group-hover:translate-y-0.5"
-              />
-            </a>
-            <a
-              href="#menu"
+              icon={
+                <ArrowDown
+                  strokeWidth={2.5}
+                  className="size-5 transition-transform group-hover:translate-y-0.5"
+                />
+              }
+            />
+            <CtaButton
+              cta={secondaryCta}
               className="inline-flex items-center gap-2 border-2 border-ink bg-paper px-6 py-3 font-display text-xl uppercase tracking-wide text-ink shadow-pop-red transition-all hover:-translate-y-1 hover:shadow-pop-red-lg active:translate-y-0"
-            >
-              Golden Hours
-            </a>
+            />
           </div>
         </div>
 

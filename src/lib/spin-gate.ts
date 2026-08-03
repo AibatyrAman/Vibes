@@ -1,10 +1,16 @@
 // Çark "alkol kapısı": barmen admin paneldeki değişen QR'ı okutmadan kimse
-// çevirmeyi açamaz. Token 60 sn'de bir döner (ekran görüntüsü riskini düşürür);
-// okutunca kısa ömürlü bir "unlock" çerezi set edilir, bir çevirmede tüketilir.
+// çevirmeyi açamaz. Token 60 sn'de bir döner (ekran görüntüsü riskini düşürür)
+// VE bir kez okutulunca DB'de tüketilmiş sayılır (used_gate_tokens) — aynı
+// token'ın fotoğrafı paylaşılsa bile pencere içinde ikinci kez kullanılamaz.
+// Okutunca kısa ömürlü bir "unlock" çerezi set edilir; bu da DB'de jti ile
+// izlenir (spin_unlocks), böylece çerez kopyalansa bile bir çevirmede
+// sunucu tarafında geçersiz kılınır.
 import "server-only";
+import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { hmacHex, signValue, verifyValue } from "./hmac";
 import { getSetting } from "./menu-repo";
+import { getDb } from "./db";
 import type { Customer } from "./customer-repo";
 
 const WINDOW_SEC = 60;
@@ -21,22 +27,39 @@ export async function currentGateToken(): Promise<string> {
   return hex.slice(0, 10).toUpperCase();
 }
 
-/** Token şu anki VEYA bir önceki pencereyle eşleşiyorsa geçerli (rollover toleransı). */
+/** Token şu anki VEYA bir önceki pencereyle eşleşiyorsa VE daha önce
+ *  kullanılmadıysa geçerli (rollover toleransı + tek kullanımlık). */
 export async function isValidGateToken(token: string): Promise<boolean> {
   const t = token.trim().toUpperCase();
   if (!t) return false;
+  let matches = false;
   for (const offset of [0, 1]) {
     const hex = await hmacHex(`spingate.${windowIndex(offset)}`);
-    if (hex.slice(0, 10).toUpperCase() === t) return true;
+    if (hex.slice(0, 10).toUpperCase() === t) {
+      matches = true;
+      break;
+    }
   }
-  return false;
+  if (!matches) return false;
+  const res = getDb()
+    .prepare(
+      "INSERT OR IGNORE INTO used_gate_tokens (token, used_at) VALUES (?, ?)",
+    )
+    .run(t, Date.now());
+  return res.changes > 0;
 }
 
-/** QR okutulunca çağrılır — kısa ömürlü unlock çerezi set eder. */
+/** QR okutulunca çağrılır — DB'de izlenen, kısa ömürlü unlock çerezi set eder. */
 export async function setUnlock(): Promise<void> {
+  const jti = crypto.randomUUID();
   const expiresAt = Date.now() + UNLOCK_TTL_SEC * 1000;
+  getDb()
+    .prepare(
+      "INSERT INTO spin_unlocks (jti, expires_at, used_at) VALUES (?, ?, NULL)",
+    )
+    .run(jti, expiresAt);
   const store = await cookies();
-  store.set(SPIN_GATE_COOKIE, await signValue(`spinunlock.${expiresAt}`), {
+  store.set(SPIN_GATE_COOKIE, await signValue(`spinunlock.${jti}`), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -45,19 +68,35 @@ export async function setUnlock(): Promise<void> {
   });
 }
 
-/** Geçerli (süresi dolmamış) bir unlock çerezi var mı? */
+function unlockJti(value: string): string | null {
+  const m = /^spinunlock\.([0-9a-f-]{36})$/.exec(value);
+  return m ? m[1] : null;
+}
+
+/** Geçerli (süresi dolmamış VE henüz tüketilmemiş) bir unlock çerezi var mı? */
 export async function hasUnlock(): Promise<boolean> {
   const store = await cookies();
   const value = await verifyValue(store.get(SPIN_GATE_COOKIE)?.value);
-  if (!value) return false;
-  const m = /^spinunlock\.(\d+)$/.exec(value);
-  if (!m) return false;
-  return Number(m[1]) > Date.now();
+  const jti = value ? unlockJti(value) : null;
+  if (!jti) return false;
+  const row = getDb()
+    .prepare("SELECT expires_at, used_at FROM spin_unlocks WHERE jti = ?")
+    .get(jti) as { expires_at: number; used_at: number | null } | undefined;
+  if (!row || row.used_at != null) return false;
+  return row.expires_at > Date.now();
 }
 
-/** Bir çevirmede unlock çerezini tüketir (tek kullanımlık). */
+/** Bir çevirmede unlock'u sunucu tarafında da tüketir (tek kullanımlık) —
+ *  yalnızca çerezi silmek yetmez, kopyalanmış bir çerez de artık geçersiz. */
 export async function consumeUnlock(): Promise<void> {
   const store = await cookies();
+  const value = await verifyValue(store.get(SPIN_GATE_COOKIE)?.value);
+  const jti = value ? unlockJti(value) : null;
+  if (jti) {
+    getDb()
+      .prepare("UPDATE spin_unlocks SET used_at = ? WHERE jti = ?")
+      .run(Date.now(), jti);
+  }
   store.delete(SPIN_GATE_COOKIE);
 }
 

@@ -5,6 +5,18 @@
 set -euo pipefail
 
 cd /var/www/aizho
+
+echo "→ .env kontrolü..."
+if [ ! -f .env ]; then
+  echo "✗ /var/www/aizho/.env bulunamadı. .env.example'a bakıp oluştur." >&2
+  exit 1
+fi
+set -a; source .env; set +a
+if [ -z "${SESSION_SECRET:-}" ] || [ -z "${ADMIN_PASSWORD:-}" ]; then
+  echo "✗ .env içinde SESSION_SECRET ve/veya ADMIN_PASSWORD boş." >&2
+  exit 1
+fi
+
 echo "→ git pull..."
 git pull --ff-only
 

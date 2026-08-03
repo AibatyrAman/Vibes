@@ -15,16 +15,19 @@ function revalidateWheel() {
   revalidatePath("/admin/cark");
 }
 
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
+
 function parseSlotForm(fd: FormData): WheelSlotInput {
   const productIdRaw = String(fd.get("productId") ?? "").trim();
   const productId = productIdRaw ? Number(productIdRaw) : null;
   const weightRaw = Number(fd.get("weight"));
   const angleRaw = Number(fd.get("angle"));
+  const colorRaw = String(fd.get("color") ?? "").trim();
   return {
     productId: productId && productId > 0 ? productId : null,
     label: String(fd.get("label") ?? "").trim(),
     rewardNote: String(fd.get("rewardNote") ?? "").trim() || null,
-    color: String(fd.get("color") ?? "#db1010").trim() || "#db1010",
+    color: HEX_COLOR.test(colorRaw) ? colorRaw : "#db1010",
     weight: Number.isFinite(weightRaw) && weightRaw > 0 ? Math.round(weightRaw) : 1,
     angle: Number.isFinite(angleRaw) && angleRaw > 0 ? angleRaw : 1,
   };
@@ -90,7 +93,9 @@ export async function getGateQrAction(): Promise<{ svg: string; url: string }> {
   await requireAdmin();
   const h = await headers();
   const host = h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? "https";
+  const proto =
+    h.get("x-forwarded-proto") ??
+    (process.env.NODE_ENV === "production" ? "https" : "http");
   const token = await currentGateToken();
   const url = `${proto}://${host}${BASE_PATH}/api/spin-gate?g=${token}`;
   const svg = await QRCode.toString(url, { type: "svg", margin: 1, width: 220 });

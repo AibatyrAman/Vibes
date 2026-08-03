@@ -12,13 +12,18 @@ import { isSpinUnlocked } from "@/lib/spin-gate";
 
 export const dynamic = "force-dynamic";
 
-export default async function CarkPage() {
+export default async function CarkPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const enabled = getSetting("wheel_enabled", "1") === "1";
   const customerId = await getCustomerId();
   const customer = customerId ? getCustomer(customerId) : null;
   const slots = enabled ? getWheelSlots() : [];
   const unlocked = enabled ? await isSpinUnlocked(customer) : false;
   const pendingPrizes = customer ? getPendingPrizes(customer.id) : [];
+  const kapiGecersiz = (await searchParams).kapi === "gecersiz";
 
   return (
     <>
@@ -46,8 +51,9 @@ export default async function CarkPage() {
                   Dur bakalım! 🍷
                 </p>
                 <p className="mt-3 font-hand text-2xl leading-snug text-ink">
-                  Alkol almadan çark dönmez kardeşim. Barmenin yanına git,
-                  bir şeyler sipariş et, sana özel kodu okutsun!
+                  {kapiGecersiz
+                    ? "Kod eskimiş görünüyor. Barmenden QR'ı tekrar okutmasını iste."
+                    : "Alkol almadan çark dönmez kardeşim. Barmenin yanına git, bir şeyler sipariş et, sana özel kodu okutsun!"}
                 </p>
               </div>
               {pendingPrizes.length > 0 && (

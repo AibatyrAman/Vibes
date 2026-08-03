@@ -2,7 +2,12 @@
 // müşteri auth (customer-auth.ts) bunu paylaşır.
 
 function secret(): string {
-  return process.env.SESSION_SECRET || "dev-insecure-secret-change-me";
+  const s = process.env.SESSION_SECRET;
+  if (s) return s;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET env değişkeni prod'da zorunlu.");
+  }
+  return "dev-insecure-secret-change-me";
 }
 
 export async function hmacHex(value: string): Promise<string> {
