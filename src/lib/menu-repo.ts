@@ -30,6 +30,7 @@ type ProductRow = {
   glass_type: string | null;
   layers: string | null;
   photo: string | null;
+  has_ice: number;
   position: number;
 };
 
@@ -78,6 +79,7 @@ export type AdminProduct = {
   glassType: GlassType | null;
   layers: DrinkLayer[];
   photo: string | null;
+  hasIce: boolean;
   position: number;
 };
 
@@ -110,6 +112,7 @@ function toPublicProduct(r: ProductRow): Product {
     glassType: (r.glass_type as GlassType | null) ?? undefined,
     layers: r.layers ? parseArr<DrinkLayer>(r.layers) : undefined,
     photo: r.photo ?? undefined,
+    hasIce: !!r.has_ice,
   };
 }
 
@@ -195,6 +198,7 @@ function toAdminProduct(r: ProductRow & { category_title?: string }): AdminProdu
     glassType: (r.glass_type as GlassType | null) ?? null,
     layers: parseArr<DrinkLayer>(r.layers),
     photo: r.photo,
+    hasIce: !!r.has_ice,
     position: r.position,
   };
 }
@@ -253,6 +257,7 @@ function productParams(input: ProductInput) {
     glass_type: input.glassType || null,
     layers: input.layers?.length ? JSON.stringify(input.layers) : null,
     photo: input.photo || null,
+    has_ice: input.hasIce ? 1 : 0,
   };
 }
 
@@ -269,9 +274,9 @@ export function createProduct(input: ProductInput): number {
   const res = db
     .prepare(
       `INSERT INTO products
-        (category_id,sub_group,name,description,price,variants,on_sale,sale_price,is_new,tag,ingredients,allergens,abv,kcal,story,glass_type,layers,photo,position)
+        (category_id,sub_group,name,description,price,variants,on_sale,sale_price,is_new,tag,ingredients,allergens,abv,kcal,story,glass_type,layers,photo,has_ice,position)
        VALUES
-        (@category_id,@sub_group,@name,@description,@price,@variants,@on_sale,@sale_price,@is_new,@tag,@ingredients,@allergens,@abv,@kcal,@story,@glass_type,@layers,@photo,@position)`,
+        (@category_id,@sub_group,@name,@description,@price,@variants,@on_sale,@sale_price,@is_new,@tag,@ingredients,@allergens,@abv,@kcal,@story,@glass_type,@layers,@photo,@has_ice,@position)`,
     )
     .run({ ...productParams(input), position: pos });
   return Number(res.lastInsertRowid);
@@ -285,7 +290,7 @@ export function updateProduct(id: number, input: ProductInput): void {
         price=@price, variants=@variants, on_sale=@on_sale, sale_price=@sale_price,
         is_new=@is_new, tag=@tag, ingredients=@ingredients, allergens=@allergens,
         abv=@abv, kcal=@kcal, story=@story,
-        glass_type=@glass_type, layers=@layers, photo=@photo
+        glass_type=@glass_type, layers=@layers, photo=@photo, has_ice=@has_ice
        WHERE id=@id`,
     )
     .run({ ...productParams(input), id });

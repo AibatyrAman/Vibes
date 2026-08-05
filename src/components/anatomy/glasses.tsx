@@ -11,6 +11,10 @@ export type GlassDef = {
   outline: string[];
   /** varsayılan sıvı dolum poligonu */
   points: Point[];
+  /** buz görseli — outline ile AYNI viewBox koordinat sisteminde path 'd'
+   *  listesi (opsiyonel). Boş/tanımsızsa product.hasIce true olsa bile
+   *  hiçbir şey çizilmez (bkz. DrinkAnatomy.tsx). */
+  ice?: string[];
 };
 
 export const GLASSES: Record<GlassType, GlassDef> = {

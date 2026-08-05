@@ -46,6 +46,8 @@ export type Product = {
   layers?: DrinkLayer[];
   /** yüklenen dekupe foto dosya adı; /api/media/<photo> ile servis edilir */
   photo?: string;
+  /** true ise bardakta dekoratif buz görseli gösterilir (bir DrinkLayer değil). */
+  hasIce?: boolean;
 };
 
 export type SubGroup = { label: string; items: Product[] };

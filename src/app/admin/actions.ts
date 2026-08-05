@@ -179,6 +179,7 @@ async function parseProductForm(fd: FormData): Promise<ProductInput> {
     glassType,
     layers,
     photo,
+    hasIce: bool("hasIce"),
   };
 }
 

@@ -5,6 +5,7 @@ import { Plus, X } from "lucide-react";
 import type { DrinkLayer, GlassType } from "@/data/menu";
 import { GLASS_LABELS, GLASSES } from "@/components/anatomy/glasses";
 import { mediaUrl } from "@/lib/base-path";
+import { matchIngredientColor } from "@/lib/ingredient-colors";
 
 const inp =
   "w-full border-2 border-ink bg-white px-3 py-2 font-mono text-sm outline-none focus:shadow-pop-sm";
@@ -13,31 +14,85 @@ const lbl =
 
 const GLASS_KEYS = Object.keys(GLASSES) as GlassType[];
 
+// Hızlı ekle çipleri — sık kullanılan malzemeler, tıklanınca kanonik
+// pop-art rengiyle birlikte yeni katman olarak eklenir.
+const QUICK_INGREDIENTS = [
+  "Votka",
+  "Cin",
+  "Tekila",
+  "Rom",
+  "Triple Sec",
+  "Viski",
+  "Likör",
+  "Espresso",
+  "Süt",
+  "Su",
+  "Limon Suyu",
+  "Şurup",
+];
+
 export default function AnatomyFields({
   glassType,
   layers: initLayers,
   photo,
+  hasIce: initHasIce,
 }: {
   glassType?: GlassType | null;
   layers?: DrinkLayer[];
   photo?: string | null;
+  hasIce?: boolean;
 }) {
   const [layers, setLayers] = useState<DrinkLayer[]>(initLayers ?? []);
+  // Mevcut (kayıtlı) katmanların rengi admin tarafından zaten seçilmiş sayılır;
+  // yeni eklenen katmanlarda isim yazılırken renk otomatik önerilir — admin
+  // renk seçiciyi kendisi kullanınca öneri o katman için devre dışı kalır.
+  const [colorManual, setColorManual] = useState<boolean[]>(() =>
+    (initLayers ?? []).map(() => true),
+  );
 
-  const update = (i: number, patch: Partial<DrinkLayer>) =>
-    setLayers((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
-  const remove = (i: number) =>
+  const updateName = (i: number, name: string) =>
+    setLayers((ls) =>
+      ls.map((l, j) => {
+        if (j !== i) return l;
+        const suggested = !colorManual[i] ? matchIngredientColor(name) : null;
+        return suggested ? { ...l, name, color: suggested } : { ...l, name };
+      }),
+    );
+  const updateColor = (i: number, color: string) => {
+    setLayers((ls) => ls.map((l, j) => (j === i ? { ...l, color } : l)));
+    setColorManual((m) => m.map((v, j) => (j === i ? true : v)));
+  };
+  const updatePercent = (i: number, percent: number) =>
+    setLayers((ls) => ls.map((l, j) => (j === i ? { ...l, percent } : l)));
+  const remove = (i: number) => {
     setLayers((ls) => ls.filter((_, j) => j !== i));
-  const add = () =>
+    setColorManual((m) => m.filter((_, j) => j !== i));
+  };
+  const add = () => {
     setLayers((ls) => [...ls, { name: "", percent: 0, color: "#db1010" }]);
-  const move = (i: number, dir: -1 | 1) =>
+    setColorManual((m) => [...m, false]);
+  };
+  const addQuick = (name: string) => {
+    setLayers((ls) => [
+      ...ls,
+      { name, percent: 0, color: matchIngredientColor(name) ?? "#db1010" },
+    ]);
+    setColorManual((m) => [...m, true]);
+  };
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= layers.length) return;
     setLayers((ls) => {
-      const j = i + dir;
-      if (j < 0 || j >= ls.length) return ls;
       const next = [...ls];
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
+    setColorManual((m) => {
+      const next = [...m];
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  };
 
   const total = layers.reduce((s, l) => s + (Number(l.percent) || 0), 0);
 
@@ -108,13 +163,13 @@ export default function AnatomyFields({
                 aria-label="Renk"
                 type="color"
                 value={l.color}
-                onChange={(e) => update(i, { color: e.target.value })}
+                onChange={(e) => updateColor(i, e.target.value)}
                 className="size-9 shrink-0 cursor-pointer border-2 border-ink bg-white"
               />
               <input
                 aria-label="Malzeme adı"
                 value={l.name}
-                onChange={(e) => update(i, { name: e.target.value })}
+                onChange={(e) => updateName(i, e.target.value)}
                 placeholder="Malzeme (ör. Tekila)"
                 className="min-w-0 flex-1 border-2 border-ink bg-white px-2 py-1.5 font-mono text-sm outline-none"
               />
@@ -125,9 +180,7 @@ export default function AnatomyFields({
                   min={0}
                   max={100}
                   value={l.percent}
-                  onChange={(e) =>
-                    update(i, { percent: Number(e.target.value) })
-                  }
+                  onChange={(e) => updatePercent(i, Number(e.target.value))}
                   className="w-16 border-2 border-ink bg-white px-2 py-1.5 font-mono text-sm outline-none"
                 />
                 <span className="font-mono text-sm text-ink/50">%</span>
@@ -144,17 +197,48 @@ export default function AnatomyFields({
           ))}
         </div>
 
-        <button
-          type="button"
-          onClick={add}
-          className="mt-2 inline-flex items-center gap-1.5 border-2 border-ink bg-navy px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-widest text-paper transition-transform hover:-translate-y-0.5"
-        >
-          <Plus strokeWidth={3} className="size-4" />
-          Katman ekle
-        </button>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={add}
+            className="inline-flex items-center gap-1.5 border-2 border-ink bg-navy px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-widest text-paper transition-transform hover:-translate-y-0.5"
+          >
+            <Plus strokeWidth={3} className="size-4" />
+            Katman ekle
+          </button>
+          <span className="font-mono text-[10px] text-ink/40">
+            hızlı ekle:
+          </span>
+          {QUICK_INGREDIENTS.map((name) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => addQuick(name)}
+              className="inline-flex items-center gap-1.5 border-2 border-ink bg-paper px-2 py-1 font-mono text-[11px] font-bold transition-transform hover:-translate-y-0.5"
+            >
+              <span
+                aria-hidden
+                className="size-2.5 shrink-0 border border-ink"
+                style={{ backgroundColor: matchIngredientColor(name) ?? "#ccc" }}
+              />
+              {name}
+            </button>
+          ))}
+        </div>
 
         <input type="hidden" name="layers" value={JSON.stringify(layers)} />
       </div>
+
+      {/* buz */}
+      <label className="flex items-center gap-2 font-mono text-sm">
+        <input
+          type="checkbox"
+          name="hasIce"
+          defaultChecked={initHasIce}
+          className="size-5 accent-[#2f6ffb]"
+        />
+        Buzlu servis edilir (bardakta buz görseli gösterilir)
+      </label>
 
       {/* gerçek foto */}
       <div>

@@ -98,6 +98,23 @@ export default function DrinkAnatomy({ product }: { product: Product }) {
                         />
                       ))}
                     </g>
+                    {/* buz — sıvının üstünde, dolum animasyonundan bağımsız
+                        (yüzer gibi durur, tabandan büyümez). glass.ice yoksa
+                        product.hasIce true olsa bile hiçbir şey çizilmez. */}
+                    {product.hasIce && !!glass.ice?.length && (
+                      <g
+                        fill="white"
+                        fillOpacity={0.5}
+                        stroke="white"
+                        strokeOpacity={0.8}
+                        strokeWidth={2}
+                        strokeLinejoin="round"
+                      >
+                        {glass.ice.map((d, i) => (
+                          <path key={i} d={d} />
+                        ))}
+                      </g>
+                    )}
                   </g>
                   {/* kontur — traslanmış bardaklar dolu-çizgi, el-çizimi stroke */}
                   {glass.filled ? (

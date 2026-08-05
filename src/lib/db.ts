@@ -161,6 +161,7 @@ function migrate(db: Database.Database) {
   addColumnIfMissing(db, "products", "glass_type", "TEXT");
   addColumnIfMissing(db, "products", "layers", "TEXT");
   addColumnIfMissing(db, "products", "photo", "TEXT");
+  addColumnIfMissing(db, "products", "has_ice", "INTEGER NOT NULL DEFAULT 0");
 
   // Çark: görsel açı/genişlik (ağırlıktan bağımsız) — mevcut DB'lere idempotent ekle.
   addColumnIfMissing(db, "wheel_slots", "angle", "REAL NOT NULL DEFAULT 1");

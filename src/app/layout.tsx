@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Anton, Space_Mono, Permanent_Marker, Caveat } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const anton = Anton({
@@ -51,7 +52,14 @@ export default function RootLayout({
       lang="tr"
       className={`${anton.variable} ${spaceMono.variable} ${permanentMarker.variable} ${caveat.variable} antialiased`}
     >
-      <body className="min-h-screen overflow-x-hidden">{children}</body>
+      <body className="min-h-screen overflow-x-hidden">
+        {children}
+        {/* Contentsquare UX analitik — app.contentsquare.com */}
+        <Script
+          src="https://t.contentsquare.net/uxa/49adca70995a4.js"
+          strategy="afterInteractive"
+        />
+      </body>
     </html>
   );
 }

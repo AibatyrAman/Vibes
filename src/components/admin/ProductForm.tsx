@@ -205,6 +205,7 @@ export default function ProductForm({
         glassType={product?.glassType ?? null}
         layers={product?.layers}
         photo={product?.photo ?? null}
+        hasIce={product?.hasIce ?? false}
       />
 
       {state?.error && (
