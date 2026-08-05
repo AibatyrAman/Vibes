@@ -54,10 +54,13 @@ export default function RootLayout({
     >
       <body className="min-h-screen overflow-x-hidden">
         {children}
-        {/* Contentsquare UX analitik — app.contentsquare.com */}
+        {/* Contentsquare UX analitik — app.contentsquare.com.
+            beforeInteractive: Next'in "her zaman <head>'e enjekte edilir"
+            garantisi verdiği tek strateji — Contentsquare'in kurulum
+            doğrulaması <head> içinde ham <script> arıyor. */}
         <Script
           src="https://t.contentsquare.net/uxa/49adca70995a4.js"
-          strategy="afterInteractive"
+          strategy="beforeInteractive"
         />
       </body>
     </html>
